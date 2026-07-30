@@ -129,3 +129,117 @@ model UserPermissionAssignment {
   @@index([permissionId])
   @@index([expiresAt])
 }
+
+
+// =========================================================
+// INVENTORY
+// =========================================================
+
+enum ItemStatus {
+  ACTIVE
+  INACTIVE
+  DISCONTINUED
+}
+
+enum StockMovementType {
+  PURCHASE
+  SALE
+  ADJUSTMENT_IN
+  ADJUSTMENT_OUT
+  RETURN_IN
+  RETURN_OUT
+  OPENING
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items Item[]
+
+  @@index([isActive])
+  @@index([name])
+}
+
+model Item {
+  id          String     @id @default(uuid())
+  sku         String     @unique
+  name        String
+  description String?
+
+  categoryId String
+  category   Category @relation(fields: [categoryId],references: [id],onDelete: Restrict  )
+
+  unit String
+
+  status ItemStatus @default(ACTIVE)
+
+  // Giá nhập gần nhất / giá vốn tham khảo
+  costPrice Decimal @db.Decimal(12, 2)
+
+  // Giá bán hiện tại
+  sellingPrice Decimal @db.Decimal(12, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stockBalance  StockBalance?
+  stockMovements StockMovement[]
+
+  @@index([categoryId])
+  @@index([status])
+  @@index([name])
+}
+
+model StockBalance {
+  id String @id @default(uuid())
+
+  itemId String @unique
+  item   Item @relation(fields: [itemId],references: [id],onDelete: Cascade)
+
+  quantity Decimal @default(0) @db.Decimal(12, 3)
+
+  updatedAt DateTime @updatedAt
+}
+
+model StockMovement {
+  id String @id @default(uuid())
+
+  itemId String
+  item   Item @relation(fields: [itemId],references: [id],onDelete: Restrict)
+
+  type StockMovementType
+
+  // Số lượng thay đổi
+  quantity Decimal @db.Decimal(12, 3)
+
+  // Tồn kho trước movement
+  balanceBefore Decimal @db.Decimal(12, 3)
+
+  // Tồn kho sau movement
+  balanceAfter Decimal @db.Decimal(12, 3)
+
+  // Giá tại thời điểm movement
+  unitCost Decimal? @db.Decimal(12, 2)
+
+  // Ghi chú
+  note String?
+
+  // Người thực hiện
+  createdBy String?
+
+  createdAt DateTime @default(now())
+
+  @@index([itemId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([createdBy])
+  @@index([itemId, createdAt])
+}
+

@@ -1,0 +1,44 @@
+Phase 1
+  Item
+  Category
+  StockBalance
+  StockMovement
+
+    1. Prisma Schema ✅ Đã làm
+      
+    2. Migration
+      ← TIẾP THEO
+
+    3. Generate Prisma Client
+
+    4. Seed dữ liệu mẫu
+      ├── Category
+      ├── Item
+      └── StockBalance
+
+    5. Category API
+
+    6. Item API
+
+    7. Stock API
+      ├── Current stock
+      ├── Stock movement
+      └── Adjustment
+
+    8. Test API
+
+Phase 2
+  StockReceipt
+  StockReceiptItem
+
+Phase 3
+  Sale
+  SaleItem
+
+Phase 4
+  ActivityLog
+  
+Phase 5
+  Inventory Report
+  Receiving Report
+  Sales Report
