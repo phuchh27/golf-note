@@ -1,0 +1,413 @@
+<section
+  class="gn-slide-up overflow-hidden rounded-[32px] border border-white/70 bg-white/80 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur-3xl"
+>
+  <!-- ===================================================== -->
+  <!-- HEADER -->
+  <!-- ===================================================== -->
+
+  <div
+    class="flex flex-col gap-5 border-b border-black/5 p-6 lg:flex-row lg:items-center lg:justify-between"
+  >
+    <div>
+      <p
+        class="text-xs font-bold uppercase tracking-[0.25em] text-(--color-brand)"
+      >
+        TODAY
+      </p>
+
+      <h2
+        class="mt-2 text-3xl font-bold tracking-tight text-(--color-text-primary)"
+      >
+        Operations Overview
+      </h2>
+
+      <p class="mt-2 text-sm text-(--color-text-secondary)">
+        Everything happening today in one place.
+      </p>
+    </div>
+
+    <div
+      class="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-4 py-2 font-semibold text-emerald-600"
+    >
+      <span class="h-2 w-2 animate-pulse rounded-full bg-emerald-500"></span>
+
+      Live
+    </div>
+  </div>
+
+  <!-- ===================================================== -->
+  <!-- BODY -->
+  <!-- ===================================================== -->
+
+  <div class="grid gap-10 p-6 lg:grid-cols-[420px_1fr] lg:items-center">
+    <!-- ===================================================== -->
+    <!-- DONUT -->
+    <!-- ===================================================== -->
+
+    <div class="flex flex-col items-center justify-center">
+      <div class="relative h-[260px] w-[260px]">
+        <svg class="-rotate-90" viewBox="0 0 220 220">
+          <!-- background -->
+
+          <circle
+            cx="110"
+            cy="110"
+            r="86"
+            fill="none"
+            stroke="#ECECEC"
+            stroke-width="18"
+          />
+
+          <!-- progress -->
+
+          <circle
+            cx="110"
+            cy="110"
+            r="86"
+            fill="none"
+            stroke="var(--color-brand)"
+            stroke-width="18"
+            stroke-linecap="round"
+            [attr.stroke-dasharray]="540"
+            [attr.stroke-dashoffset]="progressOffset()"
+            class="transition-all duration-1000"
+          />
+        </svg>
+
+        <!-- center -->
+
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+          <span class="text-6xl font-black tracking-tight text-(--color-brand)">
+            {{ upcomingBookings() }}
+          </span>
+
+          <span
+            class="mt-2 text-xs font-bold uppercase tracking-[0.45em] text-(--color-text-secondary)"
+          >
+            UPCOMING
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- RIGHT SIDE -->
+    <!-- ===================================================== -->
+
+    <div class="flex flex-col gap-5">
+      <!-- Today Booking -->
+
+      <div
+        class="group flex items-center justify-between rounded-[28px] border border-black/5 bg-black/[0.025] p-6 transition-all duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-[0_18px_45px_rgba(15,23,42,0.08)]"
+      >
+        <div>
+          <p class="text-sm font-medium text-(--color-text-secondary)">
+            Today's Bookings
+          </p>
+
+          <div
+            class="mt-2 text-5xl font-black tracking-tight text-(--color-brand)"
+          >
+            {{ todayBookings() }}
+          </div>
+        </div>
+
+        <div
+          class="flex h-16 w-16 items-center justify-center rounded-full bg-sky-50"
+        >
+          <app-icon name="clock" [size]="28" />
+        </div>
+      </div>
+
+      <!-- Upcoming -->
+
+      <div
+        class="group flex items-center justify-between rounded-[28px] border border-black/5 bg-black/2.5 p-6 transition-all duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-[0_18px_45px_rgba(15,23,42,0.08)]"
+      >
+        <div>
+          <p class="text-sm font-medium text-(--color-text-secondary)">
+            Tasks
+          </p>
+
+          <div class="mt-2 text-5xl font-black tracking-tight text-emerald-600">
+            {{ pendingTasks() }}
+          </div>
+        </div>
+
+        <div
+          class="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50"
+        >
+          <app-icon name="task" [size]="28" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================= -->
+<!-- SUMMARY CARDS -->
+<!-- ========================================= -->
+
+<!-- RIGHT SIDE -->
+<div
+  class="
+  mt-5
+  mb-12
+    grid
+    grid-cols-3
+    gap-3
+    lg:gap-5
+  "
+>
+  <!-- ====================== -->
+  <!-- TODAY BOOKINGS -->
+  <!-- ====================== -->
+
+  <div
+    class="
+      rounded-3xl
+      border border-black/5
+      bg-white
+      p-4
+
+      transition-all
+      duration-300
+
+      hover:-translate-y-1
+      hover:bg-white
+      hover:shadow-[0_18px_45px_rgba(15,23,42,.08)]
+
+      lg:p-6
+    "
+  >
+    <div class="flex items-center justify-between">
+      <p
+        class="
+          text-[11px]
+          font-semibold
+          uppercase
+          tracking-[0.18em]
+          text-(--color-text-secondary)
+
+          lg:text-xs
+        "
+      >
+        Today
+      </p>
+
+      <div
+        class="
+          flex
+          h-8
+          w-8
+          items-center
+          justify-center
+          rounded-xl
+          bg-sky-50
+
+          lg:h-10
+          lg:w-10
+        "
+      >
+        <app-icon
+          name="booking"
+          [size]="16"
+        />
+      </div>
+    </div>
+
+    <div
+      class="
+        mt-4
+        text-3xl
+        font-black
+        tracking-tight
+        text-(--color-brand)
+
+        lg:text-5xl
+      "
+    >
+      {{ todayBookings() }}
+    </div>
+
+    <p
+      class="
+        mt-1
+        text-[11px]
+        text-(--color-text-muted)
+
+        lg:text-sm
+      "
+    >
+      Bookings
+    </p>
+  </div>
+
+  <!-- ====================== -->
+  <!-- UPCOMING -->
+  <!-- ====================== -->
+
+  <div
+    class="
+      rounded-3xl
+      border border-black/5
+      bg-white
+      p-4
+
+      transition-all
+      duration-300
+
+      hover:-translate-y-1
+      hover:bg-white
+      hover:shadow-[0_18px_45px_rgba(15,23,42,.08)]
+
+      lg:p-6
+    "
+  >
+    <div class="flex items-center justify-between">
+      <p
+        class="
+          text-[11px]
+          font-semibold
+          uppercase
+          tracking-[0.18em]
+          text-(--color-text-secondary)
+
+          lg:text-xs
+        "
+      >
+        Next
+      </p>
+
+      <div
+        class="
+          flex
+          h-8
+          w-8
+          items-center
+          justify-center
+          rounded-xl
+          bg-orange-50
+
+          lg:h-10
+          lg:w-10
+        "
+      >
+        <app-icon
+          name="clock"
+          [size]="16"
+        />
+      </div>
+    </div>
+
+    <div
+      class="
+        mt-4
+        text-3xl
+        font-black
+        tracking-tight
+        text-orange-500
+
+        lg:text-5xl
+      "
+    >
+      {{ upcomingBookings() }}
+    </div>
+
+    <p
+      class="
+        mt-1
+        text-[11px]
+        text-(--color-text-muted)
+
+        lg:text-sm
+      "
+    >
+      Upcoming
+    </p>
+  </div>
+
+  <!-- ====================== -->
+  <!-- TASK -->
+  <!-- ====================== -->
+
+  <div
+    class="
+      rounded-3xl
+      border border-black/5
+      bg-white
+      p-4
+
+      transition-all
+      duration-300
+
+      hover:-translate-y-1
+      hover:bg-white
+      hover:shadow-[0_18px_45px_rgba(15,23,42,.08)]
+
+      lg:p-6
+    "
+  >
+    <div class="flex items-center justify-between">
+      <p
+        class="
+          text-[11px]
+          font-semibold
+          uppercase
+          tracking-[0.18em]
+          text-(--color-text-secondary)
+
+          lg:text-xs
+        "
+      >
+        Tasks
+      </p>
+
+      <div
+        class="
+          flex
+          h-8
+          w-8
+          items-center
+          justify-center
+          rounded-xl
+          bg-emerald-50
+
+          lg:h-10
+          lg:w-10
+        "
+      >
+        <app-icon
+          name="task"
+          [size]="16"
+        />
+      </div>
+    </div>
+
+    <div
+      class="
+        mt-4
+        text-3xl
+        font-black
+        tracking-tight
+        text-emerald-600
+
+        lg:text-5xl
+      "
+    >
+      {{ pendingTasks() }}
+    </div>
+
+    <p
+      class="
+        mt-1
+        text-[11px]
+        text-(--color-text-muted)
+
+        lg:text-sm
+      "
+    >
+      Pending
+    </p>
+  </div>
+</div>

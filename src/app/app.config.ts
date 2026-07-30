@@ -1,21 +1,54 @@
-import {
-  provideHttpClient,
-  withInterceptors,
-} from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from "@angular/common/http";
 import {
   ApplicationConfig,
   provideBrowserGlobalErrorListeners,
-} from '@angular/core';
-import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
-import { provideFileRouter, requestContextInterceptor } from '@analogjs/router';
+} from "@angular/core";
+import {
+  provideClientHydration,
+  withEventReplay,
+} from "@angular/platform-browser";
+import { provideRouter } from "@angular/router";
+import { requestContextInterceptor } from "@analogjs/router";
+import { API_PREFIX } from "@analogjs/router/tokens";
+
+import { adminGuard, authGuard } from "./core/auth/auth.guard";
+import { authErrorInterceptor } from "./core/auth/auth.http-interceptor";
+
+export const appRoutes = [
+  {
+    path: "login",
+    loadComponent: () =>
+      import("./features/(auth)/login/login.page").then((m) => m.default),
+  },
+  {
+    path: "",
+    loadComponent: () =>
+      import("./pages/index/index.page").then((m) => m.default),
+    canActivate: [authGuard],
+  },
+  {
+    path: "admin",
+    loadComponent: () =>
+      import("./pages/admin/admin-page.component").then((m) => m.default),
+    canActivate: [authGuard, adminGuard],
+  },
+  {
+    path: "**",
+    redirectTo: "",
+  },
+];
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideFileRouter(),
+    provideRouter(appRoutes),
     provideHttpClient(
-      withInterceptors([requestContextInterceptor])
+      withInterceptors([requestContextInterceptor, authErrorInterceptor]),
     ),
+    {
+      provide: API_PREFIX,
+      useValue: "api",
+    },
     provideClientHydration(withEventReplay()),
   ],
 };

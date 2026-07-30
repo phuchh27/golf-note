@@ -1,0 +1,482 @@
+<main class="min-h-screen w-full px-4 py-8 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-7xl">
+    <!-- HEADER -->
+
+    <header
+      class="mb-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div class="flex items-center gap-4">
+        <!-- Logo -->
+
+        <div
+          class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-(--color-brand) text-sm font-bold text-white shadow-(--shadow-brand)"
+        >
+          GN
+        </div>
+
+        <div>
+          <p
+            class="text-xs font-bold uppercase tracking-[0.25em] text-(--color-brand)"
+          >
+            Admin Console
+          </p>
+
+          <h1
+            class="mt-1 text-2xl font-bold tracking-tight text-(--color-text-primary) sm:text-3xl"
+          >
+            Tổng quan hệ thống
+          </h1>
+
+          <p class="mt-1 text-sm text-(--color-text-secondary)">
+            Quản lý người dùng và hoạt động của Golf-Note.
+          </p>
+        </div>
+      </div>
+
+      <!-- System Status -->
+
+      <div
+        class="inline-flex w-fit items-center gap-2 rounded-full border border-black/5 bg-white/80 px-4 py-2 text-xs font-semibold text-(--color-text-secondary) shadow-[0_8px_30px_rgba(15,23,42,0.06)] backdrop-blur-xl"
+      >
+        <span class="h-2 w-2 animate-pulse rounded-full bg-emerald-500"></span>
+
+        System Online
+      </div>
+    </header>
+
+    <!-- ================================================= -->
+    <!-- STATISTICS -->
+    <!-- ================================================= -->
+
+    <section class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <!-- Total Users -->
+
+      <article
+        class="gn-slide-up rounded-3xl border border-white/70 bg-white/80 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.07)] backdrop-blur-2xl"
+      >
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-sm font-medium text-(--color-text-secondary)">
+              Tổng người dùng
+            </p>
+
+            <p
+              class="mt-3 text-3xl font-bold tracking-tight text-(--color-text-primary)"
+            >
+              24
+            </p>
+          </div>
+
+          <div
+            class="flex h-10 w-10 items-center justify-center rounded-2xl bg-black/[0.04] text-(--color-text-primary)"
+          >
+            <app-icon name="manager" [size]="20" />
+          </div>
+        </div>
+
+        <div
+          class="mt-4 flex items-center gap-2 text-xs font-medium text-emerald-600"
+        >
+          <span>+3</span>
+
+          <span class="text-(--color-text-muted)"> trong tháng này </span>
+        </div>
+      </article>
+
+      <!-- Admin Roles -->
+
+      <article
+        class="gn-slide-up gn-delay-1 rounded-3xl border border-white/70 bg-white/80 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.07)] backdrop-blur-2xl"
+      >
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-sm font-medium text-(--color-text-secondary)">
+              Vai trò quản trị
+            </p>
+
+            <p
+              class="mt-3 text-3xl font-bold tracking-tight text-(--color-text-primary)"
+            >
+              3
+            </p>
+          </div>
+
+          <div
+            class="flex h-10 w-10 items-center justify-center rounded-2xl bg-black/[0.04] text-(--color-text-primary)"
+          >
+            <app-icon name="admin" [size]="20" />
+          </div>
+        </div>
+
+        <p class="mt-4 text-xs text-(--color-text-secondary)">
+          Admin · Manager · Super Admin
+        </p>
+      </article>
+
+      <!-- System -->
+
+      <article
+        class="gn-slide-up gn-delay-2 rounded-3xl border border-white/70 bg-white/80 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.07)] backdrop-blur-2xl sm:col-span-2 lg:col-span-1"
+      >
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-sm font-medium text-(--color-text-secondary)">
+              Trạng thái hệ thống
+            </p>
+
+            <p
+              class="mt-3 text-3xl font-bold tracking-tight text-(--color-text-primary)"
+            >
+              Online
+            </p>
+          </div>
+
+          <div
+            class="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600"
+          >
+            <span
+              class="h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-500"
+            ></span>
+          </div>
+        </div>
+
+        <p class="mt-4 text-xs text-emerald-600">
+          Tất cả dịch vụ đang hoạt động tốt
+        </p>
+      </article>
+    </section>
+
+    <!-- ================================================= -->
+    <!-- MAIN CONTENT -->
+    <!-- ================================================= -->
+
+    <section class="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+      <!-- RECENT ACTIVITY -->
+
+      <section
+        class="rounded-3xl border border-white/70 bg-white/80 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.07)] backdrop-blur-2xl sm:p-6"
+      >
+        <header class="flex items-start justify-between">
+          <div>
+            <p
+              class="text-xs font-bold uppercase tracking-[0.2em] text-(--color-brand)"
+            >
+              Activity
+            </p>
+
+            <h2
+              class="mt-2 text-xl font-bold tracking-tight text-(--color-text-primary)"
+            >
+              Hoạt động gần đây
+            </h2>
+
+            <p class="mt-1 text-sm text-(--color-text-secondary)">
+              Các thao tác quản trị mới nhất.
+            </p>
+          </div>
+
+          <span
+            class="inline-flex items-center gap-2 rounded-full bg-black/[0.04] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-(--color-text-secondary)"
+          >
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+
+            Live
+          </span>
+        </header>
+
+        <!-- Activity List -->
+
+        <div class="mt-6 space-y-3">
+          <!-- Activity 1 -->
+
+          <div
+            class="group flex items-center justify-between gap-4 rounded-2xl border border-black/5 bg-black/[0.025] px-4 py-4 transition-all duration-200 hover:bg-black/[0.045]"
+          >
+            <div class="flex items-center gap-3">
+              <div
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-(--color-text-primary) shadow-sm"
+              >
+                <app-icon name="manager" [size]="18" />
+              </div>
+
+              <div>
+                <p class="text-sm font-semibold text-(--color-text-primary)">
+                  Tạo tài khoản mới
+                </p>
+
+                <p class="mt-0.5 text-xs text-(--color-text-muted)">
+                  User Management
+                </p>
+              </div>
+            </div>
+
+            <span class="shrink-0 text-xs text-(--color-text-secondary)">
+              5 phút trước
+            </span>
+          </div>
+
+          <!-- Activity 2 -->
+
+          <div
+            class="group flex items-center justify-between gap-4 rounded-2xl border border-black/5 bg-black/[0.025] px-4 py-4 transition-all duration-200 hover:bg-black/[0.045]"
+          >
+            <div class="flex items-center gap-3">
+              <div
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-(--color-text-primary) shadow-sm"
+              >
+                <app-icon name="admin" [size]="18" />
+              </div>
+
+              <div>
+                <p class="text-sm font-semibold text-(--color-text-primary)">
+                  Phân quyền Admin
+                </p>
+
+                <p class="mt-0.5 text-xs text-(--color-text-muted)">
+                  Permission Management
+                </p>
+              </div>
+            </div>
+
+            <span class="shrink-0 text-xs text-(--color-text-secondary)">
+              1 giờ trước
+            </span>
+          </div>
+
+          <!-- Activity 3 -->
+
+          <div
+            class="group flex items-center justify-between gap-4 rounded-2xl border border-black/5 bg-black/[0.025] px-4 py-4 transition-all duration-200 hover:bg-black/[0.045]"
+          >
+            <div class="flex items-center gap-3">
+              <div
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-(--color-text-primary) shadow-sm"
+              >
+                <app-icon name="settings" [size]="18" />
+              </div>
+
+              <div>
+                <p class="text-sm font-semibold text-(--color-text-primary)">
+                  Cập nhật cấu hình
+                </p>
+
+                <p class="mt-0.5 text-xs text-(--color-text-muted)">
+                  System Settings
+                </p>
+              </div>
+            </div>
+
+            <span class="shrink-0 text-xs text-(--color-text-secondary)">
+              Hôm qua
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- CREATE USER -->
+
+      <section
+        class="rounded-3xl border border-white/70 bg-white/80 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.07)] backdrop-blur-2xl sm:p-6"
+      >
+        <header class="mb-6">
+          <div
+            class="flex h-11 w-11 items-center justify-center rounded-2xl bg-(--color-text-primary) text-white"
+          >
+            <app-icon name="plus" [size]="20" />
+          </div>
+
+          <h2
+            class="mt-4 text-xl font-bold tracking-tight text-(--color-text-primary)"
+          >
+            Tạo người dùng
+          </h2>
+
+          <p class="mt-1 text-sm leading-6 text-(--color-text-secondary)">
+            Tạo tài khoản mới và cấp quyền truy cập cho nhân viên Golf-Note.
+          </p>
+        </header>
+
+        <!-- FORM -->
+
+        <form [formGroup]="form" (ngSubmit)="createUser()" class="space-y-5">
+          <!-- Username -->
+
+          <div>
+            <label
+              for="username"
+              class="mb-2 block text-sm font-semibold text-(--color-text-primary)"
+            >
+              Username
+            </label>
+
+            <input
+              id="username"
+              formControlName="username"
+              autocomplete="username"
+              placeholder="Nhập username"
+              class="gn-input"
+            />
+          </div>
+
+          <!-- Full name -->
+
+          <div>
+            <label
+              for="fullName"
+              class="mb-2 block text-sm font-semibold text-(--color-text-primary)"
+            >
+              Họ và tên
+            </label>
+
+            <input
+              id="fullName"
+              formControlName="fullName"
+              autocomplete="name"
+              placeholder="Nhập họ và tên"
+              class="gn-input"
+            />
+          </div>
+
+          <!-- Password -->
+
+          <div>
+            <label
+              for="password"
+              class="mb-2 block text-sm font-semibold text-(--color-text-primary)"
+            >
+              Mật khẩu
+            </label>
+
+            <input
+              id="password"
+              formControlName="password"
+              type="password"
+              autocomplete="new-password"
+              placeholder="Nhập mật khẩu"
+              class="gn-input"
+            />
+          </div>
+
+          <!-- ROLE -->
+
+          <div>
+            <label
+              class="mb-3 block text-sm font-semibold text-(--color-text-primary)"
+            >
+              Vai trò
+            </label>
+
+            <div class="grid grid-cols-3 gap-2">
+              <!-- USER -->
+
+              <button
+                type="button"
+                class="flex min-h-24 flex-col items-center justify-center gap-2 rounded-3xl text-(--color-text-secondary) transition-all duration-200 active:scale-95"
+                [class.bg-black/[0.045]]="form.controls.role.value === 'USER'"
+                [class.text-(--color-text-primary)]="
+                  form.controls.role.value === 'USER'
+                "
+                [class.shadow-sm]="form.controls.role.value === 'USER'"
+                (click)="form.controls.role.setValue('USER')"
+              >
+                <div
+                  class="flex h-11 w-11 items-center justify-center rounded-2xl bg-black/[0.035]"
+                >
+                  <app-icon name="manager" [size]="24" />
+                </div>
+
+                <span class="text-sm font-semibold"> User </span>
+              </button>
+
+              <!-- ADMIN -->
+
+              <button
+                type="button"
+                class="flex min-h-24 flex-col items-center justify-center gap-2 rounded-3xl text-(--color-text-secondary) transition-all duration-200 active:scale-95"
+                [class.bg-black/[0.045]]="form.controls.role.value === 'ADMIN'"
+                [class.text-(--color-text-primary)]="
+                  form.controls.role.value === 'ADMIN'
+                "
+                [class.shadow-sm]="form.controls.role.value === 'ADMIN'"
+                (click)="form.controls.role.setValue('ADMIN')"
+              >
+                <div
+                  class="flex h-11 w-11 items-center justify-center rounded-2xl bg-black/[0.035]"
+                >
+                  <app-icon name="admin" [size]="24" />
+                </div>
+
+                <span class="text-sm font-semibold"> Admin </span>
+              </button>
+
+              <!-- SUPER ADMIN -->
+
+              <button
+                type="button"
+                class="flex min-h-24 flex-col items-center justify-center gap-2 rounded-3xl text-(--color-text-secondary) transition-all duration-200 active:scale-95"
+                [class.bg-black/[0.045]]="
+                  form.controls.role.value === 'SUPER_ADMIN'
+                "
+                [class.text-(--color-text-primary)]="
+                  form.controls.role.value === 'SUPER_ADMIN'
+                "
+                [class.shadow-sm]="form.controls.role.value === 'SUPER_ADMIN'"
+                (click)="form.controls.role.setValue('SUPER_ADMIN')"
+              >
+                <div
+                  class="flex h-11 w-11 items-center justify-center rounded-2xl bg-black/[0.035]"
+                >
+                  <app-icon name="admin" [size]="24" />
+                </div>
+
+                <span class="text-sm font-semibold text-center">
+                  Super Admin
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Message -->
+
+          @if (message()) {
+            <div
+              class="rounded-2xl border border-black/5 bg-black/[0.03] px-4 py-3 text-sm text-(--color-text-secondary)"
+            >
+              {{ message() }}
+            </div>
+          }
+
+          <!-- Submit -->
+
+          <button
+            type="submit"
+            [disabled]="form.invalid || isSubmitting()"
+            class="gn-button-primary flex w-full items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            @if (isSubmitting()) {
+              <span
+                class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
+              ></span>
+
+              <span> Đang tạo... </span>
+            } @else {
+              <app-icon name="plus" [size]="18" />
+
+              <span> Tạo người dùng </span>
+            }
+          </button>
+        </form>
+      </section>
+    </section>
+
+    <!-- FOOTER -->
+
+    <footer
+      class="mt-8 flex flex-col gap-2 border-t border-black/5 pt-5 text-xs text-(--color-text-muted) sm:flex-row sm:items-center sm:justify-between"
+    >
+      <span> Golf-Note Admin Console </span>
+
+      <span> Internal Operations Platform · © 2026 </span>
+    </footer>
+  </div>
+</main>
