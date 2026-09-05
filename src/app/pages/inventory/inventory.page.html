@@ -1,0 +1,314 @@
+<main class="mx-auto min-h-screen w-full max-w-7xl px-5 py-6 pb-32 lg:px-8">
+  <header class="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+    <div class="gn-slide-right">
+      <p class="text-xs font-bold uppercase tracking-[0.25em] text-(--color-brand)">
+        Inventory control
+      </p>
+      <h1 class="mt-2 text-3xl font-bold tracking-tight text-(--color-text-primary) sm:text-4xl">
+        Kho vật phẩm
+      </h1>
+      <p class="mt-2 max-w-2xl text-sm text-(--color-text-secondary)">
+        Theo dõi số lượng, lô hàng và hạn sử dụng trong một bảng điều khiển.
+      </p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-2">
+        @if (canManageInventory()) {
+          <button
+            type="button"
+            class="gn-button-primary inline-flex items-center gap-2 px-4"
+            (click)="openCreate()"
+          >
+            <app-icon name="plus" [size]="17" />
+            Thêm vật phẩm
+          </button>
+        } @else {
+          <span class="inline-flex min-h-12 items-center rounded-xl border border-amber-200 bg-amber-50 px-4 text-sm font-semibold text-amber-700">
+            Chế độ chỉ xem
+          </span>
+        }
+        <button
+          type="button"
+          class="inline-flex min-h-12 items-center gap-2 rounded-xl border border-black/10 bg-white px-4 text-sm font-semibold text-(--color-text-secondary) transition hover:border-(--color-brand) hover:text-(--color-brand)"
+          (click)="loadItems()"
+          [disabled]="isLoading()"
+        >
+          <app-icon name="settings" [size]="17" />
+          Làm mới
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <section class="mb-6 grid gap-4 sm:grid-cols-3">
+    <article class="gn-slide-up rounded-3xl border border-black/5 bg-white/80 p-5 shadow-(--shadow-md)">
+      <p class="text-sm text-(--color-text-secondary)">Tổng vật phẩm</p>
+      <p class="mt-3 text-3xl font-bold text-(--color-text-primary)">{{ totalItems() }}</p>
+      <p class="mt-2 text-xs text-(--color-text-muted)">Theo bộ lọc hiện tại</p>
+    </article>
+    <article class="gn-slide-up gn-delay-1 rounded-3xl border border-black/5 bg-white/80 p-5 shadow-(--shadow-md)">
+      <p class="text-sm text-(--color-text-secondary)">Sắp hết hàng</p>
+      <p class="mt-3 text-3xl font-bold text-amber-600">{{ lowStockCount() }}</p>
+      <p class="mt-2 text-xs text-(--color-text-muted)">Tồn kho từ 5 đơn vị trở xuống</p>
+    </article>
+    <article class="gn-slide-up gn-delay-2 rounded-3xl border border-black/5 bg-white/80 p-5 shadow-(--shadow-md)">
+      <p class="text-sm text-(--color-text-secondary)">Cần kiểm tra hạn</p>
+      <p class="mt-3 text-3xl font-bold text-rose-600">{{ expiryCount() }}</p>
+      <p class="mt-2 text-xs text-(--color-text-muted)">Trong 30 ngày hoặc đã quá hạn</p>
+    </article>
+  </section>
+
+  <section class="rounded-3xl border border-white/70 bg-white/80 shadow-(--shadow-lg) backdrop-blur-2xl">
+    <div class="flex flex-col gap-4 border-b border-black/5 p-5 lg:flex-row lg:items-center lg:justify-between">
+      <div class="flex flex-1 flex-col gap-3 sm:flex-row">
+        <label class="relative block flex-1">
+          <span class="sr-only">Tìm vật phẩm</span>
+          <input
+            #searchInput
+            class="gn-input pl-4"
+            type="search"
+            placeholder="Tìm theo tên hoặc SKU..."
+            [value]="search()"
+            (input)="onSearch(searchInput.value)"
+          />
+        </label>
+        <select
+          class="gn-input sm:max-w-52"
+          aria-label="Lọc theo nhóm vật phẩm"
+          [value]="categoryId()"
+          (change)="onCategoryChange(categorySelect.value)"
+          #categorySelect
+        >
+          <option value="">Tất cả nhóm</option>
+          @for (category of categories(); track category.id) {
+            <option [value]="category.id">{{ category.name }}</option>
+          }
+        </select>
+        <select
+          class="gn-input sm:max-w-44"
+          aria-label="Lọc theo trạng thái"
+          [value]="status()"
+          (change)="onStatusChange(statusSelect.value)"
+          #statusSelect
+        >
+          <option value="">Tất cả trạng thái</option>
+          <option value="ACTIVE">Đang dùng</option>
+          <option value="INACTIVE">Tạm dừng</option>
+          <option value="DISCONTINUED">Ngừng kinh doanh</option>
+        </select>
+      </div>
+      <p class="text-xs text-(--color-text-muted)">Cập nhật theo thời gian thực</p>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="m-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    @if (isLoading()) {
+      <div class="flex min-h-64 items-center justify-center p-8 text-sm text-(--color-text-secondary)">
+        Đang tải dữ liệu kho...
+      </div>
+    } @else if (items().length === 0) {
+      <div class="flex min-h-64 flex-col items-center justify-center gap-3 p-8 text-center">
+        <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-(--color-brand-light) text-(--color-brand)">
+          <app-icon name="inventory" [size]="26" />
+        </div>
+        <p class="font-semibold text-(--color-text-primary)">Chưa có vật phẩm phù hợp</p>
+        <p class="max-w-sm text-sm text-(--color-text-secondary)">Thử đổi bộ lọc hoặc thêm item mới từ API quản trị.</p>
+      </div>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-190 border-collapse text-left">
+          <thead>
+            <tr class="border-b border-black/5 text-[10px] uppercase tracking-[0.16em] text-(--color-text-muted)">
+              <th class="px-5 py-4 font-bold">Vật phẩm</th>
+              <th class="px-4 py-4 font-bold">Nhóm</th>
+              <th class="px-4 py-4 font-bold">Tồn hiện tại</th>
+              <th class="px-4 py-4 font-bold">Hạn gần nhất</th>
+              <th class="px-4 py-4 font-bold">Trạng thái</th>
+              <th class="px-5 py-4 text-right font-bold">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of items(); track trackItem($index, item)) {
+              <tr class="border-b border-black/4 transition-colors hover:bg-(--color-brand-light)/35">
+                <td class="px-5 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-(--color-brand-light) text-(--color-brand)">
+                      <app-icon name="inventory" [size]="19" />
+                    </div>
+                    <div>
+                      <button type="button" class="text-left font-semibold text-(--color-text-primary) hover:text-(--color-brand)" (click)="openDetail(item)">{{ item.name }}</button>
+                      <p class="mt-0.5 text-xs text-(--color-text-muted)">{{ item.sku }} · {{ item.unit }}</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-4 py-4 text-sm text-(--color-text-secondary)">{{ item.category.name }}</td>
+                <td class="px-4 py-4">
+                  <span
+                    class="font-bold"
+                    [class.text-rose-600]="stockQuantity(item) <= 5"
+                    [class.text-(--color-text-primary)]="stockQuantity(item) > 5"
+                  >
+                    {{ stockQuantity(item) | number: '1.0-3' }}
+                  </span>
+                  <span class="ml-1 text-xs text-(--color-text-muted)">{{ item.unit }}</span>
+                </td>
+                <td class="px-4 py-4">
+                  @if (nearestExpiry(item); as expiry) {
+                    <span
+                      class="text-sm font-medium"
+                      [class.text-rose-600]="isExpired(item)"
+                      [class.text-amber-600]="isExpiringSoon(item) && !isExpired(item)"
+                      [class.text-(--color-text-secondary)]="!isExpired(item) && !isExpiringSoon(item)"
+                    >
+                      {{ expiry | date: 'dd/MM/yyyy' }}
+                    </span>
+                  } @else {
+                    <span class="text-sm text-(--color-text-muted)">Không áp dụng</span>
+                  }
+                </td>
+                <td class="px-4 py-4">
+                  <span class="inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold"
+                    [class.bg-emerald-50]="item.status === 'ACTIVE'"
+                    [class.text-emerald-700]="item.status === 'ACTIVE'"
+                    [class.bg-slate-100]="item.status !== 'ACTIVE'"
+                    [class.text-slate-600]="item.status !== 'ACTIVE'"
+                  >{{ item.status === 'ACTIVE' ? 'Đang dùng' : 'Tạm dừng' }}</span>
+                </td>
+                <td class="px-5 py-4">
+                  @if (canManageInventory()) {
+                    <div class="flex justify-end gap-2">
+                      <button type="button" class="inline-flex h-9 items-center gap-1.5 rounded-xl border border-black/10 px-3 text-xs font-semibold text-(--color-text-secondary) transition hover:border-(--color-brand) hover:text-(--color-brand)" (click)="openEdit(item)">
+                        <app-icon name="settings" [size]="15" /> Sửa
+                      </button>
+                      <button type="button" class="inline-flex h-9 items-center gap-1.5 rounded-xl border border-black/10 px-3 text-xs font-semibold text-(--color-text-secondary) transition hover:border-(--color-brand) hover:text-(--color-brand)" (click)="openReceive(item)">
+                        <app-icon name="plus" [size]="15" /> Nhập
+                      </button>
+                      <button type="button" class="inline-flex h-9 items-center gap-1.5 rounded-xl bg-(--color-brand-light) px-3 text-xs font-semibold text-(--color-brand) transition hover:bg-(--color-brand) hover:text-white" (click)="openAdjust(item)">
+                        <app-icon name="settings" [size]="15" /> Điều chỉnh
+                      </button>
+                    </div>
+                  } @else {
+                    <span class="flex justify-end text-xs font-semibold text-(--color-text-muted)">Chỉ xem</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  @if (activePanel() === 'detail') {
+    <div class="fixed inset-0 z-60 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/25 p-0 backdrop-blur-sm sm:items-center sm:p-5" (click)="closePanel()">
+      <section class="my-auto w-full max-w-3xl rounded-t-3xl border border-white/70 bg-white p-5 shadow-2xl sm:rounded-3xl" (click)="$event.stopPropagation()">
+        <div class="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-(--color-brand)">Inventory detail</p>
+            <h2 class="mt-2 text-2xl font-bold text-(--color-text-primary)">{{ selectedItem()?.name }}</h2>
+            <p class="mt-1 text-sm text-(--color-text-secondary)">{{ selectedItem()?.sku }} · {{ selectedItem()?.category?.name }} · {{ selectedItem()?.unit }}</p>
+          </div>
+          <button type="button" class="flex h-9 w-9 items-center justify-center rounded-full bg-black/5 text-lg text-(--color-text-secondary)" aria-label="Đóng" (click)="closePanel()">×</button>
+        </div>
+
+        <div class="mb-6 grid gap-3 sm:grid-cols-3">
+          <div class="rounded-2xl bg-(--color-brand-light) p-4"><p class="text-xs text-(--color-text-secondary)">Tồn hiện tại</p><p class="mt-2 text-2xl font-bold text-(--color-brand)">{{ stockQuantity(selectedItem()!) }} {{ selectedItem()?.unit }}</p></div>
+          <div class="rounded-2xl bg-emerald-50 p-4"><p class="text-xs text-(--color-text-secondary)">Số lô còn tồn</p><p class="mt-2 text-2xl font-bold text-emerald-700">{{ selectedItem()?.stockLots?.length ?? 0 }}</p></div>
+          <div class="rounded-2xl bg-amber-50 p-4"><p class="text-xs text-(--color-text-secondary)">Giá bán</p><p class="mt-2 text-2xl font-bold text-amber-700">{{ selectedItem()?.sellingPrice }}</p></div>
+        </div>
+
+        <h3 class="mb-3 text-sm font-bold uppercase tracking-[0.15em] text-(--color-text-secondary)">Các lô hàng</h3>
+        <div class="mb-6 overflow-x-auto rounded-2xl border border-black/5">
+          <table class="w-full min-w-160 text-left text-sm"><thead class="bg-black/2.5 text-xs text-(--color-text-muted)"><tr><th class="px-4 py-3">Mã lô</th><th class="px-4 py-3">Ngày nhập</th><th class="px-4 py-3">Hạn dùng</th><th class="px-4 py-3 text-right">Còn lại</th></tr></thead><tbody>@for (lot of selectedItem()?.stockLots; track lot.id) {<tr class="border-t border-black/5"><td class="px-4 py-3">{{ lot.batchCode || 'Không mã lô' }}</td><td class="px-4 py-3">{{ lot.receivedAt | date: 'dd/MM/yyyy' }}</td><td class="px-4 py-3" [class.text-rose-600]="lot.expiresAt && lot.expiresAt < todayIso()">{{ lot.expiresAt ? (lot.expiresAt | date: 'dd/MM/yyyy') : 'Không áp dụng' }}</td><td class="px-4 py-3 text-right font-semibold">{{ lot.quantity }}</td></tr>} @empty {<tr><td colspan="4" class="px-4 py-6 text-center text-(--color-text-muted)">Chưa có lô hàng</td></tr>}</tbody></table>
+        </div>
+
+        <h3 class="mb-3 text-sm font-bold uppercase tracking-[0.15em] text-(--color-text-secondary)">Lịch sử tồn kho</h3>
+        @if (isDetailLoading()) { <p class="py-6 text-center text-sm text-(--color-text-secondary)">Đang tải lịch sử...</p> } @else { <div class="max-h-64 overflow-y-auto rounded-2xl border border-black/5"><table class="w-full min-w-160 text-left text-sm"><thead class="sticky top-0 bg-white text-xs text-(--color-text-muted)"><tr><th class="px-4 py-3">Thao tác</th><th class="px-4 py-3">Thay đổi</th><th class="px-4 py-3">Tồn trước → sau</th><th class="px-4 py-3">Thời gian</th></tr></thead><tbody>@for (movement of movements(); track movement.id) {<tr class="border-t border-black/5"><td class="px-4 py-3 font-medium">{{ movementLabel(movement.type) }}<span class="block text-xs text-(--color-text-muted)">{{ movement.note || '' }}</span></td><td class="px-4 py-3" [class.text-emerald-600]="movement.type.endsWith('_IN') || movement.type === 'PURCHASE'" [class.text-rose-600]="movement.type.endsWith('_OUT') || movement.type === 'SALE'">{{ movement.type.endsWith('_OUT') || movement.type === 'SALE' ? '-' : '+' }}{{ movement.quantity }}</td><td class="px-4 py-3">{{ movement.balanceBefore }} → {{ movement.balanceAfter }}</td><td class="px-4 py-3 text-(--color-text-muted)">{{ movement.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td></tr>} @empty {<tr><td colspan="4" class="px-4 py-6 text-center text-(--color-text-muted)">Chưa có lịch sử</td></tr>}</tbody></table></div> }
+      </section>
+    </div>
+  }
+
+  @if (activePanel() === 'create' || activePanel() === 'edit') {
+    <div class="fixed inset-0 z-60 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/25 p-0 backdrop-blur-sm sm:items-center sm:p-5" (click)="closePanel()" (wheel)="$event.stopPropagation()">
+      <section class="my-auto w-full max-w-xl rounded-t-3xl border border-white/70 bg-white p-5 shadow-2xl sm:rounded-3xl" (click)="$event.stopPropagation()">
+        <div class="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-(--color-brand)">{{ activePanel() === 'edit' ? 'Edit inventory item' : 'New inventory item' }}</p>
+            <h2 class="mt-2 text-2xl font-bold text-(--color-text-primary)">{{ activePanel() === 'edit' ? 'Sửa vật phẩm' : 'Thêm vật phẩm mới' }}</h2>
+            <p class="mt-1 text-sm text-(--color-text-secondary)">{{ activePanel() === 'edit' ? 'Cập nhật thông tin vật phẩm.' : 'Tạo thông tin vật phẩm để bắt đầu theo dõi tồn kho.' }}</p>
+          </div>
+          <button type="button" class="flex h-9 w-9 items-center justify-center rounded-full bg-black/5 text-lg text-(--color-text-secondary)" aria-label="Đóng" (click)="closePanel()">×</button>
+        </div>
+
+        <form class="grid max-h-[calc(100vh-14rem)] gap-4 overflow-y-auto pr-1 sm:grid-cols-2" [formGroup]="createForm" (ngSubmit)="saveItem()">
+          <label class="text-sm font-semibold text-(--color-text-secondary)">SKU<input class="gn-input mt-2" placeholder="VD: LAVIE-500" formControlName="sku" /></label>
+          <label class="text-sm font-semibold text-(--color-text-secondary)">Tên vật phẩm<input class="gn-input mt-2" placeholder="VD: Lavie 500ml" formControlName="name" /></label>
+          <label class="text-sm font-semibold text-(--color-text-secondary)">Nhóm vật phẩm<select class="gn-input mt-2" formControlName="categoryId" aria-label="Chọn nhóm vật phẩm">@for (category of categories(); track category.id) {<option [value]="category.id">{{ category.name }}</option>}</select></label>
+          <label class="text-sm font-semibold text-(--color-text-secondary)">Đơn vị tính<input class="gn-input mt-2" placeholder="chai, lon, cái..." formControlName="unit" /></label>
+          <label class="text-sm font-semibold text-(--color-text-secondary)">Giá nhập<input class="gn-input mt-2" type="number" min="0" step="0.01" formControlName="costPrice" /></label>
+          <label class="text-sm font-semibold text-(--color-text-secondary)">Giá bán<input class="gn-input mt-2" type="number" min="0" step="0.01" formControlName="sellingPrice" /></label>
+          <label class="text-sm font-semibold text-(--color-text-secondary) sm:col-span-2">Mô tả<textarea class="gn-input mt-2 min-h-24" placeholder="Mô tả ngắn về vật phẩm..." formControlName="description"></textarea></label>
+          <div class="flex justify-end gap-3 sm:col-span-2"><button type="button" class="rounded-xl px-4 py-3 text-sm font-semibold text-(--color-text-secondary)" (click)="closePanel()">Hủy</button><button type="submit" class="gn-button-primary px-5" [disabled]="isSaving()">{{ isSaving() ? 'Đang lưu...' : activePanel() === 'edit' ? 'Lưu thay đổi' : 'Tạo vật phẩm' }}</button></div>
+        </form>
+      </section>
+    </div>
+  }
+
+  @if (activePanel() === 'receive' || activePanel() === 'adjust') {
+    @if (activePanel(); as panel) {
+    <div class="fixed inset-0 z-60 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/25 p-0 backdrop-blur-sm sm:items-center sm:p-5" (click)="closePanel()" (wheel)="$event.stopPropagation()">
+      <section class="w-full max-w-xl rounded-t-3xl border border-white/70 bg-white p-5 shadow-2xl sm:rounded-3xl" (click)="$event.stopPropagation()">
+        <div class="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-(--color-brand)">{{ panel === 'create' ? 'New inventory item' : panel === 'receive' ? 'Stock receiving' : 'Stock adjustment' }}</p>
+            <h2 class="mt-2 text-2xl font-bold text-(--color-text-primary)">{{ panel === 'create' ? 'Thêm vật phẩm mới' : panel === 'receive' ? 'Nhập kho' : 'Điều chỉnh tồn' }}</h2>
+            <p class="mt-1 text-sm text-(--color-text-secondary)">{{ selectedItem()?.name }} · Tồn hiện tại {{ stockQuantity(selectedItem()!) }} {{ selectedItem()?.unit }}</p>
+          </div>
+          <button type="button" class="flex h-9 w-9 items-center justify-center rounded-full bg-black/5 text-lg text-(--color-text-secondary)" aria-label="Đóng" (click)="closePanel()">×</button>
+        </div>
+
+        @if (panel === 'create') {
+          <form class="grid gap-4 sm:grid-cols-2" [formGroup]="createForm" (ngSubmit)="saveItem()">
+            <label class="text-sm font-semibold text-(--color-text-secondary)">SKU<input class="gn-input mt-2" placeholder="VD: LAVIE-500" formControlName="sku" /></label>
+            <label class="text-sm font-semibold text-(--color-text-secondary)">Tên vật phẩm<input class="gn-input mt-2" placeholder="VD: Lavie 500ml" formControlName="name" /></label>
+            <label class="text-sm font-semibold text-(--color-text-secondary)">Nhóm vật phẩm<select class="gn-input mt-2" formControlName="categoryId" aria-label="Chọn nhóm vật phẩm">@for (category of categories(); track category.id) {<option [value]="category.id">{{ category.name }}</option>}</select></label>
+            <label class="text-sm font-semibold text-(--color-text-secondary)">Đơn vị tính<input class="gn-input mt-2" placeholder="chai, lon, cái..." formControlName="unit" /></label>
+            <label class="text-sm font-semibold text-(--color-text-secondary)">Giá nhập<input class="gn-input mt-2" type="number" min="0" step="0.01" formControlName="costPrice" /></label>
+            <label class="text-sm font-semibold text-(--color-text-secondary)">Giá bán<input class="gn-input mt-2" type="number" min="0" step="0.01" formControlName="sellingPrice" /></label>
+            <label class="text-sm font-semibold text-(--color-text-secondary) sm:col-span-2">Mô tả<textarea class="gn-input mt-2 min-h-24" placeholder="Mô tả ngắn về vật phẩm..." formControlName="description"></textarea></label>
+            <div class="flex justify-end gap-3 sm:col-span-2"><button type="button" class="rounded-xl px-4 py-3 text-sm font-semibold text-(--color-text-secondary)" (click)="closePanel()">Hủy</button><button type="submit" class="gn-button-primary px-5" [disabled]="isSaving()">{{ isSaving() ? 'Đang lưu...' : 'Tạo vật phẩm' }}</button></div>
+          </form>
+        } @else if (panel === 'receive') {
+          <form class="grid gap-4 sm:grid-cols-2" [formGroup]="receiveForm" (ngSubmit)="receiveStock()">
+            <label class="text-sm font-semibold text-(--color-text-secondary)">Số lượng<input class="gn-input mt-2" type="number" min="0.001" step="0.001" formControlName="quantity" /></label>
+            <label class="text-sm font-semibold text-(--color-text-secondary)">Mã lô<input class="gn-input mt-2" placeholder="VD: LOT-2026-09" formControlName="batchCode" /></label>
+            <label class="text-sm font-semibold text-(--color-text-secondary)">Ngày nhập<input class="gn-input mt-2" type="date" formControlName="receivedAt" /></label>
+            <label class="text-sm font-semibold text-(--color-text-secondary)">Ngày hết hạn<input class="gn-input mt-2" type="date" formControlName="expiresAt" /></label>
+            <label class="text-sm font-semibold text-(--color-text-secondary)">Giá nhập<input class="gn-input mt-2" type="number" min="0" step="0.01" formControlName="unitCost" /></label>
+            <label class="text-sm font-semibold text-(--color-text-secondary)">Ghi chú<input class="gn-input mt-2" placeholder="Thông tin nhà cung cấp..." formControlName="note" /></label>
+            <div class="flex justify-end gap-3 sm:col-span-2"><button type="button" class="rounded-xl px-4 py-3 text-sm font-semibold text-(--color-text-secondary)" (click)="closePanel()">Hủy</button><button type="submit" class="gn-button-primary px-5" [disabled]="isSaving()">{{ isSaving() ? 'Đang lưu...' : 'Xác nhận nhập kho' }}</button></div>
+          </form>
+        } @else {
+          <form class="grid gap-4" [formGroup]="adjustForm" (ngSubmit)="adjustStock()">
+            <div class="grid grid-cols-2 gap-2 rounded-2xl bg-(--color-background-soft) p-1">
+              <label class="cursor-pointer rounded-xl px-3 py-2 text-center text-sm font-semibold has-checked:bg-white has-checked:text-emerald-700 has-checked:shadow-sm"><input class="sr-only" type="radio" value="IN" formControlName="direction" />Tăng tồn</label>
+              <label class="cursor-pointer rounded-xl px-3 py-2 text-center text-sm font-semibold has-checked:bg-white has-checked:text-rose-700 has-checked:shadow-sm"><input class="sr-only" type="radio" value="OUT" formControlName="direction" />Giảm tồn</label>
+            </div>
+            <label class="text-sm font-semibold text-(--color-text-secondary)">Số lượng<input class="gn-input mt-2" type="number" min="0.001" step="0.001" formControlName="quantity" /></label>
+            @if (selectedItem()?.stockLots?.length) {
+              <label class="text-sm font-semibold text-(--color-text-secondary)">Lô hàng<select class="gn-input mt-2" formControlName="lotId"><option value="">Không chọn lô cụ thể</option>@for (lot of selectedItem()?.stockLots; track lot.id) {<option [value]="lot.id">{{ lot.batchCode || 'Không mã lô' }} · {{ lot.quantity }} còn lại</option>}</select></label>
+            }
+            <label class="text-sm font-semibold text-(--color-text-secondary)">Lý do / ghi chú<textarea class="gn-input mt-2 min-h-24" placeholder="Bắt buộc nhập lý do điều chỉnh" formControlName="note"></textarea></label>
+            <div class="flex justify-end gap-3"><button type="button" class="rounded-xl px-4 py-3 text-sm font-semibold text-(--color-text-secondary)" (click)="closePanel()">Hủy</button><button type="submit" class="gn-button-primary px-5" [disabled]="isSaving()">{{ isSaving() ? 'Đang lưu...' : 'Xác nhận điều chỉnh' }}</button></div>
+          </form>
+        }
+      </section>
+    </div>
+  }
+  }
+</main>

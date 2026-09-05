@@ -469,6 +469,48 @@
       </section>
     </section>
 
+    <!-- SALES OPERATIONS -->
+
+    <section
+      class="mt-6 rounded-3xl border border-white/70 bg-white/80 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.07)] backdrop-blur-2xl sm:p-6"
+    >
+      <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex items-start gap-4">
+          <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+            <app-icon name="sales" [size]="21" />
+          </div>
+          <div>
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">
+              Sales operations
+            </p>
+            <h2 class="mt-2 text-xl font-bold tracking-tight text-(--color-text-primary)">
+              Quản lý bán hàng
+            </h2>
+            <p class="mt-1 text-sm text-(--color-text-secondary)">
+              Mở bán nhanh hoặc tra cứu giao dịch đã ghi nhận.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2 sm:justify-end">
+          <a
+            routerLink="/sales/new"
+            class="inline-flex min-h-11 items-center gap-2 rounded-xl bg-(--color-brand) px-4 text-sm font-semibold text-white transition hover:bg-(--color-brand-dark)"
+          >
+            <app-icon name="quick-sale" [size]="17" />
+            Bán nhanh
+          </a>
+          <a
+            routerLink="/sales"
+            class="inline-flex min-h-11 items-center gap-2 rounded-xl border border-black/10 bg-white px-4 text-sm font-semibold text-(--color-text-secondary) transition hover:border-(--color-brand) hover:text-(--color-brand)"
+          >
+            <app-icon name="report" [size]="17" />
+            Lịch sử Sale
+          </a>
+        </div>
+      </div>
+    </section>
+
     <!-- FOOTER -->
 
     <footer

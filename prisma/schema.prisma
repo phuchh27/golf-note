@@ -130,7 +130,6 @@ model UserPermissionAssignment {
   @@index([expiresAt])
 }
 
-
 // =========================================================
 // INVENTORY
 // =========================================================
@@ -151,12 +150,22 @@ enum StockMovementType {
   OPENING
 }
 
+enum SaleCustomerType {
+  ROOM
+  EXTERNAL
+}
+
+enum SaleStatus {
+  COMPLETED
+  CANCELLED
+}
+
 model Category {
-  id          String   @id @default(uuid())
-  code        String   @unique
+  id          String  @id @default(uuid())
+  code        String  @unique
   name        String
   description String?
-  isActive    Boolean  @default(true)
+  isActive    Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -168,13 +177,13 @@ model Category {
 }
 
 model Item {
-  id          String     @id @default(uuid())
-  sku         String     @unique
+  id          String  @id @default(uuid())
+  sku         String  @unique
   name        String
   description String?
 
   categoryId String
-  category   Category @relation(fields: [categoryId],references: [id],onDelete: Restrict  )
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
 
   unit String
 
@@ -189,8 +198,10 @@ model Item {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  stockBalance  StockBalance?
+  stockBalance   StockBalance?
+  stockLots      StockLot[]
   stockMovements StockMovement[]
+  saleItems      SaleItem[]
 
   @@index([categoryId])
   @@index([status])
@@ -201,18 +212,52 @@ model StockBalance {
   id String @id @default(uuid())
 
   itemId String @unique
-  item   Item @relation(fields: [itemId],references: [id],onDelete: Cascade)
+  item   Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
 
   quantity Decimal @default(0) @db.Decimal(12, 3)
 
   updatedAt DateTime @updatedAt
 }
 
+model StockLot {
+  id String @id @default(uuid())
+
+  itemId String
+  item   Item   @relation(fields: [itemId], references: [id], onDelete: Restrict)
+
+  // Mã lô do nhà cung cấp cung cấp, nếu có
+  batchCode String?
+
+  receivedAt DateTime  @default(now())
+  expiresAt  DateTime?
+
+  quantity Decimal  @default(0) @db.Decimal(12, 3)
+  unitCost Decimal? @db.Decimal(12, 2)
+  note     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stockMovements StockMovement[]
+  saleItems      SaleItem[]
+
+  @@index([itemId])
+  @@index([receivedAt])
+  @@index([expiresAt])
+  @@index([batchCode])
+}
+
 model StockMovement {
   id String @id @default(uuid())
 
   itemId String
-  item   Item @relation(fields: [itemId],references: [id],onDelete: Restrict)
+  item   Item   @relation(fields: [itemId], references: [id], onDelete: Restrict)
+
+  lotId String?
+  lot   StockLot? @relation(fields: [lotId], references: [id], onDelete: Restrict)
+
+  saleItemId String?
+  saleItem   SaleItem? @relation(fields: [saleItemId], references: [id], onDelete: SetNull)
 
   type StockMovementType
 
@@ -241,5 +286,51 @@ model StockMovement {
   @@index([createdAt])
   @@index([createdBy])
   @@index([itemId, createdAt])
+  @@index([lotId])
+  @@index([saleItemId])
 }
 
+model Sale {
+  id String @id @default(uuid())
+
+  customerType SaleCustomerType
+  roomNumber   String?
+  customerName String?
+  note         String?
+
+  totalAmount Decimal    @db.Decimal(12, 2)
+  soldAt      DateTime   @default(now())
+  status      SaleStatus @default(COMPLETED)
+  createdBy   String?
+  createdAt   DateTime   @default(now())
+
+  items SaleItem[]
+
+  @@index([soldAt])
+  @@index([customerType])
+  @@index([roomNumber])
+  @@index([status])
+}
+
+model SaleItem {
+  id String @id @default(uuid())
+
+  saleId String
+  sale   Sale   @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  itemId String
+  item   Item   @relation(fields: [itemId], references: [id], onDelete: Restrict)
+
+  lotId String?
+  lot   StockLot? @relation(fields: [lotId], references: [id], onDelete: Restrict)
+
+  quantity   Decimal @db.Decimal(12, 3)
+  unitPrice  Decimal @db.Decimal(12, 2)
+  totalPrice Decimal @db.Decimal(12, 2)
+
+  movements StockMovement[]
+
+  @@index([saleId])
+  @@index([itemId])
+  @@index([lotId])
+}

@@ -1,6 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { Component, inject, signal } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
+import { RouterLink } from "@angular/router";
 
 import { ToastService } from "../../core/ui/toast.service";
 import { IconComponent } from "../../core/ui/icon/icon.component";
@@ -8,7 +9,7 @@ import { IconComponent } from "../../core/ui/icon/icon.component";
 @Component({
   selector: "app-admin-page",
   standalone: true,
-  imports: [ReactiveFormsModule, IconComponent],
+  imports: [ReactiveFormsModule, RouterLink, IconComponent],
   templateUrl: "./admin-page.component.html",
 })
 export default class AdminPage {
@@ -68,8 +69,7 @@ export default class AdminPage {
 
         error: (error) => {
           const message =
-            error?.error?.statusMessage ??
-            "Không thể tạo người dùng lúc này.";
+            error?.error?.statusMessage ?? "Không thể tạo người dùng lúc này.";
 
           this.toastService.error(message);
 

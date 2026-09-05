@@ -1,0 +1,32 @@
+<main class="mx-auto min-h-screen w-full max-w-7xl px-5 py-6 pb-32 lg:px-8">
+  <header class="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-[0.25em] text-(--color-brand)">Sales history</p>
+      <h1 class="mt-2 text-3xl font-bold tracking-tight text-(--color-text-primary) sm:text-4xl">Lịch sử bán hàng</h1>
+      <p class="mt-2 text-sm text-(--color-text-secondary)">Tra cứu nhanh giao dịch theo ngày, phòng và khách mua.</p>
+    </div>
+    <a href="/sales/new" class="gn-button-primary inline-flex min-h-12 items-center justify-center gap-2 px-4"><app-icon name="plus" [size]="17" /> Bán nhanh</a>
+  </header>
+
+  <section class="mb-6 grid gap-4 sm:grid-cols-2">
+    <article class="rounded-3xl border border-black/5 bg-white/80 p-5 shadow-(--shadow-md)"><p class="text-sm text-(--color-text-secondary)">Số giao dịch</p><p class="mt-2 text-3xl font-bold text-(--color-brand)">{{ totalSales() }}</p></article>
+    <article class="rounded-3xl border border-black/5 bg-white/80 p-5 shadow-(--shadow-md)"><p class="text-sm text-(--color-text-secondary)">Tổng doanh số</p><p class="mt-2 text-3xl font-bold text-emerald-600">{{ price(totalAmount()) | number: '1.0-2' }}</p></article>
+  </section>
+
+  <section class="mb-6 rounded-3xl border border-white/70 bg-white/80 p-5 shadow-(--shadow-md)">
+    <div class="grid gap-3 md:grid-cols-[1fr_1fr_1fr_1fr_auto_auto] md:items-end">
+      <label class="text-sm font-semibold text-(--color-text-secondary)">Từ ngày<input class="gn-input mt-2" type="date" [ngModel]="dateFrom()" (ngModelChange)="dateFrom.set($event)" /></label>
+      <label class="text-sm font-semibold text-(--color-text-secondary)">Đến ngày<input class="gn-input mt-2" type="date" [ngModel]="dateTo()" (ngModelChange)="dateTo.set($event)" /></label>
+      <label class="text-sm font-semibold text-(--color-text-secondary)">Loại khách<select class="gn-input mt-2" aria-label="Lọc loại khách" [ngModel]="customerType()" (ngModelChange)="customerType.set($event)"><option value="">Tất cả</option><option value="ROOM">Phòng</option><option value="EXTERNAL">Khách ngoài</option></select></label>
+      <label class="text-sm font-semibold text-(--color-text-secondary)">Số phòng<input class="gn-input mt-2" placeholder="VD: 101" [ngModel]="roomNumber()" (ngModelChange)="roomNumber.set($event)" /></label>
+      <button type="button" class="gn-button-primary px-4" (click)="loadSales()">Lọc</button>
+      <button type="button" class="min-h-12 rounded-xl px-3 text-sm font-semibold text-(--color-text-secondary) hover:bg-black/5" (click)="clearFilters()">Xóa lọc</button>
+    </div>
+  </section>
+
+  <section class="overflow-hidden rounded-3xl border border-white/70 bg-white/80 shadow-(--shadow-lg)">
+    @if (isLoading()) { <div class="p-16 text-center text-sm text-(--color-text-secondary)">Đang tải lịch sử...</div> } @else if (sales().length === 0) { <div class="p-16 text-center text-sm text-(--color-text-secondary)">Chưa có giao dịch phù hợp.</div> } @else {
+      <div class="overflow-x-auto"><table class="w-full min-w-220 text-left"><thead class="bg-black/2.5 text-[10px] uppercase tracking-[0.16em] text-(--color-text-muted)"><tr><th class="px-5 py-4">Thời gian</th><th class="px-4 py-4">Khách mua</th><th class="px-4 py-4">Vật phẩm</th><th class="px-4 py-4">Người bán</th><th class="px-5 py-4 text-right">Tổng tiền</th></tr></thead><tbody>@for (sale of sales(); track sale.id) {<tr class="border-t border-black/5 align-top"><td class="px-5 py-4 text-sm text-(--color-text-secondary)">{{ sale.soldAt | date: 'dd/MM/yyyy HH:mm' }}</td><td class="px-4 py-4"><span class="inline-flex rounded-full px-2.5 py-1 text-xs font-bold" [class.bg-sky-50]="sale.customerType === 'ROOM'" [class.text-sky-700]="sale.customerType === 'ROOM'" [class.bg-amber-50]="sale.customerType === 'EXTERNAL'" [class.text-amber-700]="sale.customerType === 'EXTERNAL'">{{ customerLabel(sale) }}</span></td><td class="px-4 py-4"><div class="space-y-1">@for (line of sale.items; track line.id) {<p class="text-sm text-(--color-text-primary)"><span class="font-semibold">{{ line.item.name }}</span><span class="ml-2 text-xs text-(--color-text-muted)">× {{ line.quantity }} {{ line.item.unit }}</span></p>}</div></td><td class="px-4 py-4 text-sm text-(--color-text-secondary)">Đã ghi nhận</td><td class="px-5 py-4 text-right font-bold text-(--color-brand)">{{ price(sale.totalAmount) | number: '1.0-2' }}</td></tr>}</tbody></table></div>
+    }
+  </section>
+</main>

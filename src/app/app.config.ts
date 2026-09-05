@@ -33,6 +33,24 @@ export const appRoutes = [
     canActivate: [authGuard, adminGuard],
   },
   {
+    path: "inventory",
+    loadComponent: () =>
+      import("./pages/inventory/inventory.page").then((m) => m.default),
+    canActivate: [authGuard],
+  },
+  {
+    path: "sales/new",
+    loadComponent: () =>
+      import("./pages/sales/sale.page").then((m) => m.default),
+    canActivate: [authGuard],
+  },
+  {
+    path: "sales",
+    loadComponent: () =>
+      import("./pages/sales/sales-history.page").then((m) => m.default),
+    canActivate: [authGuard],
+  },
+  {
     path: "**",
     redirectTo: "",
   },
