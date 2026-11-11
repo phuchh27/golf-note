@@ -34,10 +34,32 @@ const requireInventoryManager = async (c: any, next: any) => {
   return next();
 };
 
+const requireInventoryAdmin = async (c: any, next: any) => {
+  const token = getCookie(c, "golf_note_session");
+  const user = token ? await sessionService.getUserBySessionToken(token) : null;
+  const roles = (user?.roleAssignments ?? [])
+    .filter((assignment: any) => assignment.isActive)
+    .map((assignment: any) => assignment.role.code.toUpperCase());
+
+  if (!user) return c.json({ success: false, message: "Unauthorized" }, 401);
+  if (!["ADMIN", "SUPER_ADMIN"].some((role) => roles.includes(role))) {
+    return c.json(
+      { success: false, message: "Administrator permission is required" },
+      403,
+    );
+  }
+  return next();
+};
+
 itemsRouter.get("/", ItemController.list);
 itemsRouter.get("/:id", ItemController.getById);
 itemsRouter.post("/", requireInventoryManager, ItemController.create);
 itemsRouter.patch("/:id", requireInventoryManager, ItemController.update);
+itemsRouter.patch(
+  "/:id/status",
+  requireInventoryAdmin,
+  ItemController.updateStatus,
+);
 itemsRouter.patch(
   "/:id/deactivate",
   requireInventoryManager,

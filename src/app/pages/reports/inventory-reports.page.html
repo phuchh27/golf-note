@@ -1,0 +1,225 @@
+<main class="mx-auto min-h-screen w-full max-w-7xl px-5 py-6 pb-32 lg:px-8">
+  <header class="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-[0.25em] text-(--color-brand)">{{ languageService.dictionary().inventoryReports.eyebrow }}</p>
+      <h1 class="mt-2 text-3xl font-bold tracking-tight text-(--color-text-primary) sm:text-4xl">{{ languageService.dictionary().inventoryReports.title }}</h1>
+      <p class="mt-2 max-w-3xl text-sm text-(--color-text-secondary)">{{ languageService.dictionary().inventoryReports.description }}</p>
+    </div>
+    <button type="button" class="inline-flex min-h-11 items-center gap-2 rounded-xl border border-black/10 bg-white px-4 text-sm font-semibold text-(--color-text-secondary) hover:border-(--color-brand) hover:text-(--color-brand)" (click)="loadMonth()" [disabled]="isLoading()">
+      <app-icon name="settings" [size]="17" />{{ languageService.dictionary().inventoryReports.refresh }}
+    </button>
+  </header>
+
+  <section class="mb-6 rounded-3xl border border-white/70 bg-white/80 p-5 shadow-(--shadow-lg) backdrop-blur-2xl sm:p-6">
+    <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h2 class="text-xl font-bold text-(--color-text-primary)">{{ languageService.dictionary().inventoryReports.createTitle }}</h2>
+        <p class="mt-1 text-sm text-(--color-text-secondary)">{{ languageService.dictionary().inventoryReports.createHint }}</p>
+      </div>
+      <span class="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700">{{ languageService.dictionary().inventoryReports.snapshotHint }}</span>
+    </div>
+    <form class="grid gap-4 md:grid-cols-[1fr_1fr_2fr_auto] md:items-end" (ngSubmit)="createReport()">
+      <label class="text-sm font-semibold text-(--color-text-secondary)">{{ languageService.dictionary().inventoryReports.reportDate }}
+        <input class="gn-input mt-2" type="date" name="reportDate" [ngModel]="selectedDate()" (ngModelChange)="selectedDate.set($event)" required />
+      </label>
+      <label class="text-sm font-semibold text-(--color-text-secondary)">{{ languageService.dictionary().inventoryReports.shift }}
+        <select class="gn-input mt-2" name="shift" [ngModel]="selectedShift()" (ngModelChange)="selectedShift.set($event)" required>
+          @for (schedule of schedules(); track schedule.code) {
+            <option [value]="schedule.code">{{ languageService.language() === 'vi' ? schedule.labelVi : schedule.labelEn }} ({{ formatShiftTime(schedule.startMinute) }}–{{ formatShiftTime(schedule.endMinute) }})</option>
+          }
+        </select>
+      </label>
+      <label class="text-sm font-semibold text-(--color-text-secondary)">{{ languageService.dictionary().inventoryReports.note }}
+        <input class="gn-input mt-2" name="note" [placeholder]="languageService.dictionary().inventoryReports.notePlaceholder" [ngModel]="note()" (ngModelChange)="note.set($event)" />
+      </label>
+      <button type="submit" class="gn-button-primary inline-flex min-h-12 items-center justify-center gap-2 px-5" [disabled]="isSaving() || schedules().length === 0">
+        <app-icon name="plus" [size]="17" />{{ isSaving() ? languageService.dictionary().inventoryReports.saving : languageService.dictionary().inventoryReports.createReport }}
+      </button>
+    </form>
+  </section>
+
+  <section class="overflow-hidden rounded-3xl border border-white/70 bg-white/80 shadow-(--shadow-lg)">
+    <header class="flex items-center justify-between border-b border-black/5 p-5 sm:p-6">
+      <div>
+        <p class="text-xs font-bold uppercase tracking-[0.18em] text-(--color-brand)">{{ languageService.dictionary().inventoryReports.calendar }}</p>
+        <h2 class="mt-1 text-xl font-bold text-(--color-text-primary)">{{ selectedMonth() }}</h2>
+      </div>
+      <div class="flex gap-2">
+        <button type="button" class="inline-flex min-h-10 items-center gap-2 rounded-xl bg-(--color-brand) px-3 text-xs font-semibold text-white hover:opacity-90 sm:px-4 sm:text-sm" (click)="openMonthlySummary()" [disabled]="isMonthlyLoading()">
+          <app-icon name="report" [size]="16" />{{ isMonthlyLoading() ? languageService.dictionary().inventoryReports.loading : languageService.dictionary().inventoryReports.monthlySummary }}
+        </button>
+        <button type="button" class="flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 bg-white text-xl hover:border-(--color-brand)" [attr.aria-label]="languageService.dictionary().inventoryReports.previousMonth" [title]="languageService.dictionary().inventoryReports.previousMonth" (click)="moveMonth(-1)">‹</button>
+        <button type="button" class="flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 bg-white text-xl hover:border-(--color-brand)" [attr.aria-label]="languageService.dictionary().inventoryReports.nextMonth" [title]="languageService.dictionary().inventoryReports.nextMonth" (click)="moveMonth(1)">›</button>
+      </div>
+    </header>
+    <div class="grid grid-cols-7 border-b border-black/5 bg-black/2">
+      @for (weekday of languageService.dictionary().inventoryReports.weekdays; track weekday) {
+        <div class="px-1 py-3 text-center text-[10px] font-bold uppercase tracking-wide text-(--color-text-muted) sm:px-3 sm:text-xs">{{ weekday }}</div>
+      }
+    </div>
+    @if (isLoading()) {
+      <div class="p-12 text-center text-sm text-(--color-text-secondary)">{{ languageService.dictionary().inventoryReports.loading }}</div>
+    } @else {
+      <div class="grid grid-cols-7">
+        @for (day of calendarDays(); track $index) {
+          <div class="min-h-28 border-b border-r border-black/5 p-1.5 last:border-r-0 sm:min-h-36 sm:p-2">
+            @if (day) {
+              <div class="mb-2 flex items-center justify-between">
+                <button type="button" class="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold text-(--color-text-secondary) hover:bg-(--color-brand-light) hover:text-(--color-brand)" (click)="selectedDate.set(selectedMonth() + '-' + (day < 10 ? '0' : '') + day)">{{ day }}</button>
+                @if (reportsForDay(day).length) { <span class="hidden text-[10px] text-(--color-text-muted) sm:inline">{{ reportsForDay(day).length }}/{{ schedules().length }}</span> }
+              </div>
+              <div class="space-y-1">
+                @for (report of reportsForDay(day); track report.id) {
+                  <button type="button" class="block w-full rounded-lg border border-emerald-200 bg-emerald-50 px-1.5 py-1 text-left text-[10px] leading-tight text-emerald-800 transition hover:border-emerald-400 sm:px-2 sm:text-xs" (click)="openReport(report)">
+                    <span class="block truncate font-bold">{{ shiftName(report.shiftCode, report.shiftLabel) }}</span>
+                    <span class="hidden truncate sm:block">{{ report.creatorName }} · {{ report.createdAt | date: 'HH:mm' }}</span>
+                    @if ((report.changedItemCount ?? 0) > 0) { <span class="block truncate text-amber-800">{{ report.changedItemCount }} {{ languageService.dictionary().inventoryReports.changedItems }}</span> }
+                    @if (report.note) { <span class="block truncate italic">{{ report.note }}</span> }
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+    <div class="flex flex-wrap gap-x-5 gap-y-2 p-4 text-xs text-(--color-text-muted) sm:px-6">
+      <span class="inline-flex items-center gap-2"><i class="h-2.5 w-2.5 rounded-full bg-emerald-400"></i>{{ languageService.dictionary().inventoryReports.reportExists }}</span>
+      <span>{{ languageService.dictionary().inventoryReports.twoShifts }}</span>
+    </div>
+  </section>
+
+  @if (monthlySummary(); as summary) {
+    <section class="mt-7 overflow-hidden rounded-3xl border border-white/70 bg-white/90 shadow-(--shadow-lg)">
+      <header class="flex flex-col gap-4 border-b border-black/5 p-5 sm:flex-row sm:items-start sm:justify-between sm:p-6">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-[0.18em] text-(--color-brand)">{{ languageService.dictionary().inventoryReports.monthlySummary }}</p>
+          <h2 class="mt-2 text-2xl font-bold text-(--color-text-primary)">{{ languageService.dictionary().inventoryReports.monthlyTitle }} · {{ summary.month }}</h2>
+          <p class="mt-2 max-w-3xl text-sm text-(--color-text-secondary)">{{ languageService.dictionary().inventoryReports.monthlySummaryHint }}</p>
+        </div>
+        <div class="flex shrink-0 gap-2">
+          <button type="button" class="inline-flex min-h-10 items-center gap-2 rounded-xl bg-(--color-brand) px-4 text-sm font-semibold text-white hover:opacity-90" (click)="saveMonthlySummaryImage()"><app-icon name="report" [size]="16" />{{ languageService.dictionary().inventoryReports.downloadImage }}</button>
+          <button type="button" class="flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 text-lg" [attr.aria-label]="languageService.dictionary().inventoryReports.close" (click)="closeMonthlySummary()">×</button>
+        </div>
+      </header>
+      <p class="px-5 pt-4 text-xs text-(--color-text-muted) sm:px-6">{{ languageService.dictionary().inventoryReports.saveImageInstructions }}</p>
+      <div class="grid grid-cols-2 gap-3 p-5 sm:grid-cols-4 sm:px-6">
+        <article class="rounded-2xl bg-(--color-background-soft) p-4"><p class="text-xs text-(--color-text-secondary)">{{ languageService.dictionary().inventoryReports.item }}</p><p class="mt-2 text-2xl font-bold">{{ summary.itemCount }}</p></article>
+        <article class="rounded-2xl bg-(--color-background-soft) p-4"><p class="text-xs text-(--color-text-secondary)">{{ languageService.dictionary().inventoryReports.category }}</p><p class="mt-2 text-2xl font-bold">{{ summary.categoryCount }}</p></article>
+        <article class="rounded-2xl bg-(--color-background-soft) p-4"><p class="text-xs text-(--color-text-secondary)">{{ languageService.dictionary().inventoryReports.sold }} · {{ languageService.dictionary().inventoryReports.transactions }}</p><p class="mt-2 text-2xl font-bold">{{ summary.soldQuantity | number: '1.0-3' }} · {{ summary.transactionCount }}</p></article>
+        <article class="rounded-2xl bg-(--color-background-soft) p-4"><p class="text-xs text-(--color-text-secondary)">{{ languageService.dictionary().inventoryReports.revenue }}</p><p class="mt-2 text-2xl font-bold">{{ summary.salesTotal | number: '1.0-2' }}</p></article>
+      </div>
+
+      <div class="space-y-7 px-5 pb-6 sm:px-6">
+        <section>
+          <h3 class="mb-3 text-lg font-bold text-(--color-text-primary)">{{ languageService.dictionary().inventoryReports.stockSection }}</h3>
+          @for (category of summary.categories; track category.id) {
+            <div class="mb-4 overflow-x-auto rounded-2xl border border-black/5 last:mb-0">
+              <div class="border-b border-black/5 bg-(--color-background-soft) px-4 py-3"><h4 class="font-bold text-(--color-text-primary)">{{ category.name }}</h4><p class="mt-0.5 text-xs text-(--color-text-muted)">{{ category.code }}</p></div>
+              <table class="w-full min-w-220 text-left text-sm">
+                <thead class="text-[10px] uppercase tracking-wide text-(--color-text-muted)"><tr><th class="px-4 py-3">{{ languageService.dictionary().inventoryReports.item }}</th><th class="px-4 py-3">{{ languageService.dictionary().inventoryReports.condition }}</th><th class="px-4 py-3 text-right">{{ languageService.dictionary().inventoryReports.remainingQuantity }}</th><th class="px-4 py-3">{{ languageService.dictionary().inventoryReports.expiryDate }}</th><th class="px-4 py-3 text-right">{{ languageService.dictionary().inventoryReports.lotQuantity }}</th><th class="px-4 py-3 text-right">{{ languageService.dictionary().inventoryReports.sold }}</th><th class="px-4 py-3 text-right">{{ languageService.dictionary().inventoryReports.soldRevenue }}</th></tr></thead>
+                <tbody>
+                  @for (item of category.items; track item.id) {
+                    @if (item.lots.length) {
+                      @for (lot of item.lots; track lot.id; let first = $first) {
+                        <tr class="border-t border-black/5 align-top">
+                          @if (first) {
+                            <td class="px-4 py-3" [attr.rowspan]="item.lots.length"><p class="font-semibold">{{ item.name }}</p><p class="mt-1 text-xs text-(--color-text-muted)">{{ item.sku }} · {{ item.unit }}</p></td>
+                            <td class="px-4 py-3" [attr.rowspan]="item.lots.length"><span class="rounded-full px-2 py-1 text-xs" [class.bg-emerald-50]="item.status === 'ACTIVE'" [class.text-emerald-700]="item.status === 'ACTIVE'" [class.bg-slate-100]="item.status !== 'ACTIVE'">{{ item.status }}</span></td>
+                            <td class="px-4 py-3 text-right font-bold" [attr.rowspan]="item.lots.length">{{ item.quantity | number: '1.0-3' }} {{ item.unit }}</td>
+                            <td class="px-4 py-3">{{ lot.expiresAt ? (lot.expiresAt | date: 'dd/MM/yyyy') : '—' }}<span class="block text-xs text-(--color-text-muted)">{{ lot.batchCode || '—' }}</span></td>
+                            <td class="px-4 py-3 text-right">{{ lot.quantity | number: '1.0-3' }} {{ item.unit }}</td>
+                            <td class="px-4 py-3 text-right" [attr.rowspan]="item.lots.length">{{ item.soldQuantity | number: '1.0-3' }} {{ item.unit }}</td>
+                            <td class="px-4 py-3 text-right" [attr.rowspan]="item.lots.length">{{ item.soldRevenue | number: '1.0-2' }}</td>
+                          } @else {
+                            <td class="px-4 py-3">{{ lot.expiresAt ? (lot.expiresAt | date: 'dd/MM/yyyy') : '—' }}<span class="block text-xs text-(--color-text-muted)">{{ lot.batchCode || '—' }}</span></td>
+                            <td class="px-4 py-3 text-right">{{ lot.quantity | number: '1.0-3' }} {{ item.unit }}</td>
+                          }
+                        </tr>
+                      }
+                    } @else {
+                      <tr class="border-t border-black/5"><td class="px-4 py-3"><p class="font-semibold">{{ item.name }}</p><p class="mt-1 text-xs text-(--color-text-muted)">{{ item.sku }} · {{ item.unit }}</p></td><td class="px-4 py-3">{{ item.status }}</td><td class="px-4 py-3 text-right font-bold">{{ item.quantity | number: '1.0-3' }} {{ item.unit }}</td><td class="px-4 py-3">—</td><td class="px-4 py-3 text-right">—</td><td class="px-4 py-3 text-right">{{ item.soldQuantity | number: '1.0-3' }} {{ item.unit }}</td><td class="px-4 py-3 text-right">{{ item.soldRevenue | number: '1.0-2' }}</td></tr>
+                    }
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @empty {
+            <p class="rounded-2xl bg-(--color-background-soft) p-5 text-center text-sm text-(--color-text-muted)">{{ languageService.dictionary().inventoryReports.noItems }}</p>
+          }
+        </section>
+
+        <section>
+          <div class="mb-3"><h3 class="text-lg font-bold text-(--color-text-primary)">{{ languageService.dictionary().inventoryReports.salesDetails }}</h3><p class="mt-1 text-sm text-(--color-text-secondary)">{{ summary.sales.length }} {{ languageService.dictionary().inventoryReports.transactions }} · {{ languageService.dictionary().inventoryReports.revenue }}: {{ summary.salesTotal | number: '1.0-2' }}</p></div>
+          <div class="overflow-x-auto rounded-2xl border border-black/5">
+            <table class="w-full min-w-240 text-left text-sm">
+              <thead class="bg-black/2.5 text-[10px] uppercase tracking-wide text-(--color-text-muted)"><tr><th class="px-4 py-3">{{ languageService.dictionary().inventoryReports.time }}</th><th class="px-4 py-3">{{ languageService.dictionary().inventoryReports.customer }}</th><th class="px-4 py-3">{{ languageService.dictionary().inventoryReports.seller }}</th><th class="px-4 py-3">{{ languageService.dictionary().inventoryReports.item }}</th><th class="px-4 py-3">{{ languageService.dictionary().inventoryReports.expiryDate }}</th><th class="px-4 py-3 text-right">{{ languageService.dictionary().inventoryReports.sold }}</th><th class="px-4 py-3 text-right">{{ languageService.dictionary().inventoryReports.revenue }}</th></tr></thead>
+              <tbody>
+                @for (sale of summary.sales; track sale.id) {
+                  @for (line of sale.items; track line.id) {
+                    <tr class="border-t border-black/5"><td class="whitespace-nowrap px-4 py-3">{{ sale.soldAt | date: 'dd/MM/yyyy HH:mm' }}</td><td class="px-4 py-3">{{ monthlyCustomerLabel(sale) }}</td><td class="px-4 py-3">{{ sale.sellerName || '—' }}</td><td class="px-4 py-3 font-medium">{{ line.itemName }}<span class="block text-xs text-(--color-text-muted)">{{ line.sku }}</span></td><td class="px-4 py-3">{{ line.expiresAt ? (line.expiresAt | date: 'dd/MM/yyyy') : '—' }}</td><td class="px-4 py-3 text-right">{{ line.quantity }} {{ line.unit }}</td><td class="px-4 py-3 text-right font-semibold">{{ line.totalPrice | number: '1.0-2' }}</td></tr>
+                  }
+                } @empty {
+                  <tr><td colspan="7" class="px-4 py-8 text-center text-(--color-text-muted)">{{ languageService.dictionary().inventoryReports.noSales }}</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </section>
+  }
+
+  @if (selectedReport(); as report) {
+    <section class="mt-7 overflow-hidden rounded-3xl border border-white/70 bg-white/90 shadow-(--shadow-lg)">
+      <header class="flex flex-col gap-4 border-b border-black/5 p-5 sm:flex-row sm:items-start sm:justify-between sm:p-6">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-[0.18em] text-(--color-brand)">{{ languageService.dictionary().inventoryReports.reportInfo }}</p>
+          <h2 class="mt-2 text-2xl font-bold text-(--color-text-primary)">{{ shiftName(report.shiftCode, report.shiftLabel) }} · {{ report.reportDate | date: 'dd/MM/yyyy' }}</h2>
+          <div class="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-(--color-text-secondary)">
+            <span>{{ languageService.dictionary().inventoryReports.creator }}: <strong>{{ report.creatorName }}</strong></span>
+            <span>{{ languageService.dictionary().inventoryReports.createdAt }}: {{ report.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+            <span>{{ report.startsAt | date: 'HH:mm' }}–{{ report.endsAt | date: 'HH:mm' }}</span>
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <button type="button" class="inline-flex min-h-10 items-center gap-2 rounded-xl bg-(--color-brand) px-4 text-sm font-semibold text-white hover:opacity-90" (click)="downloadImage()"><app-icon name="report" [size]="16" />{{ languageService.dictionary().inventoryReports.downloadImage }}</button>
+          <button type="button" class="flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 text-lg" [attr.aria-label]="languageService.dictionary().inventoryReports.close" [title]="languageService.dictionary().inventoryReports.close" (click)="closeReport()">×</button>
+        </div>
+      </header>
+      <p class="px-5 pt-3 text-xs text-(--color-text-muted) sm:px-6">{{ languageService.dictionary().inventoryReports.saveImageInstructions }}</p>
+      @if (isDetailLoading()) {
+        <div class="p-12 text-center text-sm text-(--color-text-secondary)">{{ languageService.dictionary().inventoryReports.loadingDetail }}</div>
+      } @else {
+        <div class="space-y-8 p-5 sm:p-6">
+          <section>
+            <div class="mb-3 flex items-end justify-between gap-3"><div><h3 class="text-lg font-bold text-(--color-text-primary)">{{ languageService.dictionary().inventoryReports.salesSection }}</h3><p class="mt-1 text-sm text-(--color-text-secondary)">{{ report.sales?.length ?? 0 }} {{ languageService.dictionary().inventoryReports.transactions }} · {{ languageService.dictionary().inventoryReports.revenue }}: {{ (report.sales ?? []).reduce(sumSales, 0) | number: '1.0-2' }}</p></div></div>
+            <div class="overflow-x-auto rounded-2xl border border-black/5">
+              <table class="w-full min-w-180 text-left text-sm"><thead class="bg-black/2.5 text-[10px] uppercase tracking-wide text-(--color-text-muted)"><tr><th class="px-4 py-3">{{ languageService.dictionary().inventoryReports.time }}</th><th class="px-4 py-3">{{ languageService.dictionary().inventoryReports.customer }}</th><th class="px-4 py-3">{{ languageService.dictionary().inventoryReports.soldItems }}</th><th class="px-4 py-3">{{ languageService.dictionary().inventoryReports.seller }}</th><th class="px-4 py-3 text-right">{{ languageService.dictionary().inventoryReports.revenue }}</th></tr></thead><tbody>
+                @for (sale of report.sales; track sale.id) { <tr class="border-t border-black/5 align-top"><td class="whitespace-nowrap px-4 py-3">{{ sale.soldAt | date: 'HH:mm' }}</td><td class="px-4 py-3 font-semibold">{{ customerLabel(sale) }}</td><td class="px-4 py-3"><div class="space-y-1">@for (item of sale.items; track item.id) {<p>{{ item.itemName }} <span class="text-(--color-text-muted)">× {{ item.quantity }} {{ item.unit }}</span></p>}</div></td><td class="px-4 py-3 text-(--color-text-secondary)">{{ sale.sellerName || '—' }}</td><td class="px-4 py-3 text-right font-bold">{{ quantity(sale.totalAmount) | number: '1.0-2' }}</td></tr> } @empty { <tr><td colspan="5" class="px-4 py-8 text-center text-(--color-text-muted)">{{ languageService.dictionary().inventoryReports.noSales }}</td></tr> }
+              </tbody></table>
+            </div>
+          </section>
+
+          <section>
+            <h3 class="mb-3 text-lg font-bold text-(--color-text-primary)">{{ languageService.dictionary().inventoryReports.stockSection }}</h3>
+            <p class="mb-4 text-sm text-(--color-text-secondary)">{{ languageService.dictionary().inventoryReports.stockHint }}</p>
+            @for (group of ['BEVERAGE', 'SUPPLIES']; track group) {
+              <div class="mb-5 overflow-x-auto rounded-2xl border border-black/5 last:mb-0">
+                <div class="border-b border-black/5 bg-black/2.5 px-4 py-3 text-sm font-bold text-(--color-text-primary)">{{ group === 'BEVERAGE' ? languageService.dictionary().inventoryReports.beverages : languageService.dictionary().inventoryReports.supplies }}</div>
+                <table class="w-full min-w-200 text-left text-sm"><thead class="text-[10px] uppercase tracking-wide text-(--color-text-muted)"><tr><th class="px-4 py-3">{{ languageService.dictionary().inventoryReports.item }}</th><th class="px-4 py-3 text-right">{{ languageService.dictionary().inventoryReports.previous }}</th><th class="px-4 py-3 text-right">{{ languageService.dictionary().inventoryReports.change }}</th><th class="px-4 py-3 text-right">{{ languageService.dictionary().inventoryReports.current }}</th><th class="px-4 py-3 text-right">{{ languageService.dictionary().inventoryReports.sold }}</th><th class="px-4 py-3 text-right">{{ languageService.dictionary().inventoryReports.receivedAdjusted }}</th></tr></thead><tbody>
+                  @for (item of (group === 'BEVERAGE' ? groupItems('BEVERAGE') : groupItems('SUPPLIES')); track item.id) { <tr class="border-t border-black/5"><td class="px-4 py-3"><span class="font-semibold">{{ item.name }}</span><span class="ml-2 text-xs text-(--color-text-muted)">{{ item.sku }} · {{ item.categoryName }}</span></td><td class="px-4 py-3 text-right">{{ item.previousQuantity == null ? '—' : item.previousQuantity }}</td><td class="px-4 py-3 text-right font-bold" [class.text-emerald-700]="quantity(item.change) > 0" [class.text-rose-700]="quantity(item.change) < 0">{{ item.change == null ? '—' : (quantity(item.change) > 0 ? '+' : '') + item.change }}</td><td class="px-4 py-3 text-right font-bold">{{ item.quantity }} {{ item.unit }}</td><td class="px-4 py-3 text-right">{{ item.soldQuantity }}</td><td class="px-4 py-3 text-right">+{{ item.receivedQuantity }} / +{{ item.adjustedIn }} / −{{ item.adjustedOut }}</td></tr> } @empty { <tr><td colspan="6" class="px-4 py-7 text-center text-(--color-text-muted)">{{ languageService.dictionary().inventoryReports.noItems }}</td></tr> }
+                </tbody></table>
+              </div>
+            }
+          </section>
+
+          <section class="rounded-2xl border border-amber-100 bg-amber-50/70 p-4 sm:p-5">
+            <h3 class="font-bold text-amber-950">{{ languageService.dictionary().inventoryReports.note }}</h3>
+            <p class="mt-2 whitespace-pre-wrap text-sm text-amber-900">{{ report.note || languageService.dictionary().inventoryReports.noNote }}</p>
+          </section>
+        </div>
+      }
+    </section>
+  }
+</main>

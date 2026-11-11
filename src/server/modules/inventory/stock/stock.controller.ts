@@ -44,14 +44,37 @@ export class StockController {
     return c.json({ success: true, data: result });
   }
 
+  static async receiptHistory(c: Context) {
+    const query = c.req.query();
+    const result = await service.getReceiptHistory({
+      receiptNumber: query["receiptNumber"],
+      itemId: query["itemId"],
+      batchCode: query["batchCode"],
+      lotId: query["lotId"],
+      page: Number(query["page"]) || 1,
+      limit: Number(query["limit"]) || 20,
+    });
+
+    return c.json({ success: true, data: result });
+  }
+
   static async receive(c: Context) {
-    const result = await service.receiveStock(await c.req.json());
+    const body = await c.req.json();
+    const createdBy = c.get("stockActorId");
+    const result = await service.receiveStock({
+      ...body,
+      createdBy,
+      items: body.items?.map((item: any) => ({ ...item, createdBy })),
+    });
 
     return c.json({ success: true, data: result }, 201);
   }
 
   static async adjust(c: Context) {
-    const result = await service.adjustStock(await c.req.json());
+    const result = await service.adjustStock({
+      ...(await c.req.json()),
+      createdBy: c.get("stockActorId"),
+    });
 
     return c.json({ success: true, data: result });
   }

@@ -7,14 +7,14 @@ import {
   provideClientHydration,
   withEventReplay,
 } from "@angular/platform-browser";
-import { provideRouter } from "@angular/router";
+import { provideRouter, type Routes } from "@angular/router";
 import { requestContextInterceptor } from "@analogjs/router";
 import { API_PREFIX } from "@analogjs/router/tokens";
 
 import { adminGuard, authGuard } from "./core/auth/auth.guard";
 import { authErrorInterceptor } from "./core/auth/auth.http-interceptor";
 
-export const appRoutes = [
+export const appRoutes: Routes = [
   {
     path: "login",
     loadComponent: () =>
@@ -33,6 +33,27 @@ export const appRoutes = [
     canActivate: [authGuard, adminGuard],
   },
   {
+    path: "handover",
+    pathMatch: "full",
+    loadComponent: () =>
+      import("./pages/handover/handover.page").then((m) => m.default),
+    canActivate: [authGuard],
+  },
+  {
+    path: "handover/new",
+    loadComponent: () =>
+      import("./pages/handover/handover.page").then((m) => m.default),
+    canActivate: [authGuard],
+  },
+  {
+    path: "handover/:id",
+    loadComponent: () =>
+      import("./pages/handover/handover-task-detail.page").then(
+        (m) => m.default,
+      ),
+    canActivate: [authGuard],
+  },
+  {
     path: "inventory",
     loadComponent: () =>
       import("./pages/inventory/inventory.page").then((m) => m.default),
@@ -48,6 +69,25 @@ export const appRoutes = [
     path: "sales",
     loadComponent: () =>
       import("./pages/sales/sales-history.page").then((m) => m.default),
+    canActivate: [authGuard],
+  },
+  {
+    path: "reports",
+    pathMatch: "full",
+    loadComponent: () =>
+      import("./pages/reports/inventory-reports.page").then((m) => m.default),
+    canActivate: [authGuard],
+  },
+  {
+    path: "archive",
+    loadComponent: () =>
+      import("./pages/archive/archive.page").then((m) => m.default),
+    canActivate: [authGuard],
+  },
+  {
+    path: "reports/new",
+    loadComponent: () =>
+      import("./pages/reports/inventory-reports.page").then((m) => m.default),
     canActivate: [authGuard],
   },
   {

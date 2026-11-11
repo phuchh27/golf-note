@@ -6,6 +6,7 @@ import { firstValueFrom } from "rxjs";
 
 import { IconComponent } from "../../core/ui/icon/icon.component";
 import { ToastService } from "../../core/ui/toast.service";
+import { LanguageService } from "../../core/i18n/language.service";
 
 interface SaleLine {
   id: string;
@@ -43,6 +44,7 @@ interface SaleResponse {
 export default class SalesHistoryPage implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly toast = inject(ToastService);
+  readonly languageService = inject(LanguageService);
 
   readonly sales = signal<SaleRecord[]>([]);
   readonly totalSales = signal(0);

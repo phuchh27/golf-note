@@ -64,6 +64,14 @@ export class ItemRepository {
         include: {
           category: true,
           stockBalance: true,
+          stockLoans: {
+            where: { status: "BORROWED" },
+            select: { lotId: true, quantity: true },
+          },
+          stockLots: {
+            where: { quantity: { gt: 0 } },
+            orderBy: [{ expiresAt: "asc" }, { receivedAt: "asc" }],
+          },
         },
         orderBy: { name: "asc" },
         skip: params.skip,

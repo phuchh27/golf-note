@@ -4,24 +4,18 @@ import {
   computed,
   inject,
   signal,
-} from '@angular/core';
-import {
-  RouterLink,
-  RouterLinkActive,
-} from '@angular/router';
+} from "@angular/core";
+import { RouterLink, RouterLinkActive } from "@angular/router";
 
-import { AuthService } from '../../auth/auth.service';
-import { IconComponent } from '../icon/icon.component';
-import { NAVIGATION_ITEMS } from './navigation.config';
+import { AuthService } from "../../auth/auth.service";
+import { LanguageService } from "../../i18n/language.service";
+import { IconComponent } from "../icon/icon.component";
+import { NAVIGATION_ITEMS } from "./navigation.config";
 
 @Component({
-  selector: 'app-navigation',
+  selector: "app-navigation",
   standalone: true,
-  imports: [
-    RouterLink,
-    RouterLinkActive,
-    IconComponent,
-  ],
+  imports: [RouterLink, RouterLinkActive, IconComponent],
   template: `
     <!-- ========================================================= -->
     <!-- MOBILE BOTTOM NAVIGATION                                  -->
@@ -29,23 +23,17 @@ import { NAVIGATION_ITEMS } from './navigation.config';
 
     <nav
       class="
-        fixed inset-x-4 bottom-4 z-50
-        flex h-20 items-center
-        rounded-4xl
-        border border-white/70
-        bg-white/85
-        px-3
-        shadow-[0_20px_60px_rgba(15,23,42,0.14)]
-        backdrop-blur-2xl
+        mobile-glass-nav
+        fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50
+        isolate flex h-16 items-center
+        rounded-[1.65rem]
+        px-2
         md:hidden
       "
       aria-label="Mobile navigation"
     >
       <!-- HOME + HANDOVER -->
-      @for (
-        item of primaryMobileNavigationItems();
-        track item.route
-      ) {
+      @for (item of primaryMobileNavigationItems(); track item.route) {
         <a
           [routerLink]="item.route"
           routerLinkActive="is-active"
@@ -53,7 +41,7 @@ import { NAVIGATION_ITEMS } from './navigation.config';
             exact: item.route === '/',
           }"
           class="
-            flex h-14 flex-1
+            flex h-12 flex-1
             flex-col items-center justify-center
             gap-0.5
             rounded-2xl
@@ -62,14 +50,11 @@ import { NAVIGATION_ITEMS } from './navigation.config';
             active:scale-95
           "
         >
-          <app-icon
-            [name]="item.icon"
-            [size]="24"
-          />
+          <app-icon [name]="item.icon" [size]="21" />
 
           <span
             class="
-              text-[11px]
+              text-[10px]
               font-semibold
               transition-colors duration-200
             "
@@ -83,7 +68,7 @@ import { NAVIGATION_ITEMS } from './navigation.config';
       <button
         type="button"
         class="
-          flex h-14 flex-1
+          flex h-12 flex-1
           flex-col items-center justify-center
           gap-0.5
           rounded-2xl
@@ -96,14 +81,11 @@ import { NAVIGATION_ITEMS } from './navigation.config';
         [attr.aria-expanded]="isMoreOpen()"
         (click)="toggleMore()"
       >
-        <app-icon
-          name="more"
-          [size]="24"
-        />
+        <app-icon name="more" [size]="21" />
 
         <span
           class="
-            text-[11px]
+            text-[10px]
             font-semibold
           "
         >
@@ -119,12 +101,12 @@ import { NAVIGATION_ITEMS } from './navigation.config';
         type="button"
         class="
           quick-action-button
-          ml-2
-          flex h-14 w-14
+          ml-1
+          flex h-12 w-12
           shrink-0
           items-center justify-center
           rounded-full
-          bg-white
+          bg-white/90
           text-green-500
           shadow-[0_8px_25px_rgba(34,197,94,0.16)]
           ring-1 ring-black/5
@@ -132,17 +114,14 @@ import { NAVIGATION_ITEMS } from './navigation.config';
           active:scale-90
         "
         [class.is-open]="isQuickActionsOpen()"
-        aria-label="Quick actions"
+        [attr.aria-label]="languageService.dictionary().navigation.quickActions"
         [attr.aria-expanded]="isQuickActionsOpen()"
         (click)="toggleQuickActions()"
       >
         <span class="electric-ring"></span>
 
         <span class="quick-action-icon">
-          <app-icon
-            name="plus"
-            [size]="28"
-          />
+          <app-icon name="plus" [size]="24" />
         </span>
       </button>
     </nav>
@@ -190,10 +169,7 @@ import { NAVIGATION_ITEMS } from './navigation.config';
         ></div>
 
         <div class="grid grid-cols-3 gap-2">
-          @for (
-            item of moreMenuItems();
-            track item.route
-          ) {
+          @for (item of moreMenuItems(); track item.route) {
             <a
               [routerLink]="item.route"
               routerLinkActive="is-active"
@@ -213,10 +189,7 @@ import { NAVIGATION_ITEMS } from './navigation.config';
                 active:scale-95
               "
             >
-              <app-icon
-                [name]="item.icon"
-                [size]="24"
-              />
+              <app-icon [name]="item.icon" [size]="24" />
 
               <span
                 class="
@@ -261,7 +234,7 @@ import { NAVIGATION_ITEMS } from './navigation.config';
           md:hidden
           animate-slide-up
         "
-        aria-label="Quick actions"
+        [attr.aria-label]="languageService.dictionary().navigation.quickActions"
       >
         <!-- HANDLE -->
         <div
@@ -274,10 +247,7 @@ import { NAVIGATION_ITEMS } from './navigation.config';
         ></div>
 
         <div class="grid grid-cols-2 gap-2">
-          @for (
-            action of quickActions;
-            track action.route
-          ) {
+          @for (action of quickActions; track action.route) {
             <a
               [routerLink]="action.route"
               (click)="closeQuickActions()"
@@ -292,13 +262,10 @@ import { NAVIGATION_ITEMS } from './navigation.config';
                 active:scale-[0.97]
               "
             >
-              <app-icon
-                [name]="action.icon"
-                [size]="22"
-              />
+              <app-icon [name]="action.icon" [size]="22" />
 
               <span>
-                {{ action.label }}
+                {{ languageService.dictionary().quickActions[action.key] }}
               </span>
             </a>
           }
@@ -331,10 +298,7 @@ import { NAVIGATION_ITEMS } from './navigation.config';
           backdrop-saturate-150
         "
       >
-        @for (
-          item of desktopNavigationItems();
-          track item.route
-        ) {
+        @for (item of desktopNavigationItems(); track item.route) {
           <a
             [routerLink]="item.route"
             routerLinkActive="is-active"
@@ -352,10 +316,7 @@ import { NAVIGATION_ITEMS } from './navigation.config';
               active:scale-95
             "
           >
-            <app-icon
-              [name]="item.icon"
-              [size]="22"
-            />
+            <app-icon [name]="item.icon" [size]="22" />
 
             <!-- TOOLTIP -->
             <span
@@ -419,10 +380,7 @@ import { NAVIGATION_ITEMS } from './navigation.config';
           <span class="electric-ring"></span>
 
           <span class="quick-action-icon">
-            <app-icon
-              name="plus"
-              [size]="24"
-            />
+            <app-icon name="plus" [size]="24" />
           </span>
         </button>
       </nav>
@@ -444,10 +402,7 @@ import { NAVIGATION_ITEMS } from './navigation.config';
             animate-slide-up
           "
         >
-          @for (
-            action of quickActions;
-            track action.route
-          ) {
+          @for (action of quickActions; track action.route) {
             <a
               [routerLink]="action.route"
               (click)="closeQuickActions()"
@@ -462,13 +417,10 @@ import { NAVIGATION_ITEMS } from './navigation.config';
                 active:scale-[0.97]
               "
             >
-              <app-icon
-                [name]="action.icon"
-                [size]="20"
-              />
+              <app-icon [name]="action.icon" [size]="20" />
 
               <span>
-                {{ action.label }}
+                {{ languageService.dictionary().quickActions[action.key] }}
               </span>
             </a>
           }
@@ -480,6 +432,44 @@ import { NAVIGATION_ITEMS } from './navigation.config';
   styles: `
     :host {
       display: block;
+    }
+
+    .mobile-glass-nav {
+      position: fixed;
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.58),
+        rgba(245, 249, 253, 0.34)
+      );
+      -webkit-backdrop-filter: blur(30px) saturate(190%);
+      backdrop-filter: blur(30px) saturate(190%);
+      box-shadow:
+        0 12px 34px rgba(15, 23, 42, 0.16),
+        0 3px 10px rgba(15, 23, 42, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.28);
+    }
+
+    .mobile-glass-nav::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      background: linear-gradient(
+        115deg,
+        rgba(255, 255, 255, 0.34),
+        transparent 48%,
+        rgba(255, 255, 255, 0.08)
+      );
+    }
+
+    .mobile-glass-nav > a,
+    .mobile-glass-nav > button {
+      position: relative;
+      z-index: 1;
     }
 
     :host a,
@@ -549,14 +539,11 @@ import { NAVIGATION_ITEMS } from './navigation.config';
       color: var(--color-brand);
 
       box-shadow:
-        0 0 0 1px
-          rgba(0, 59, 112, 0.06),
-        0 8px 25px
-          rgba(0, 59, 112, 0.18);
+        0 0 0 1px rgba(0, 59, 112, 0.06),
+        0 8px 25px rgba(0, 59, 112, 0.18);
     }
 
-    .quick-action-button.is-open
-      .quick-action-icon {
+    .quick-action-button.is-open .quick-action-icon {
       transform: rotate(45deg);
     }
 
@@ -584,26 +571,20 @@ import { NAVIGATION_ITEMS } from './navigation.config';
      * khi chưa mở
      */
 
-    .quick-action-button:not(.is-open)
-      .electric-ring {
-      background:
-        conic-gradient(
-          from 0deg,
-          transparent 0deg,
-          transparent 260deg,
-          rgba(34, 197, 94, 0.15) 285deg,
-          rgba(34, 197, 94, 0.95) 315deg,
-          transparent 345deg,
-          transparent 360deg
-        );
+    .quick-action-button:not(.is-open) .electric-ring {
+      background: conic-gradient(
+        from 0deg,
+        transparent 0deg,
+        transparent 260deg,
+        rgba(34, 197, 94, 0.15) 285deg,
+        rgba(34, 197, 94, 0.95) 315deg,
+        transparent 345deg,
+        transparent 360deg
+      );
 
       opacity: 1;
 
-      animation:
-        electric-spin
-        2.8s
-        linear
-        infinite;
+      animation: electric-spin 2.8s linear infinite;
     }
 
     /*
@@ -612,26 +593,20 @@ import { NAVIGATION_ITEMS } from './navigation.config';
      * Electric chuyển sang màu brand
      */
 
-    .quick-action-button.is-open
-      .electric-ring {
-      background:
-        conic-gradient(
-          from 0deg,
-          transparent 0deg,
-          transparent 245deg,
-          rgba(0, 59, 112, 0.15) 275deg,
-          rgba(0, 59, 112, 0.95) 315deg,
-          transparent 350deg,
-          transparent 360deg
-        );
+    .quick-action-button.is-open .electric-ring {
+      background: conic-gradient(
+        from 0deg,
+        transparent 0deg,
+        transparent 245deg,
+        rgba(0, 59, 112, 0.15) 275deg,
+        rgba(0, 59, 112, 0.95) 315deg,
+        transparent 350deg,
+        transparent 360deg
+      );
 
       opacity: 1;
 
-      animation:
-        electric-spin
-        1.6s
-        linear
-        infinite;
+      animation: electric-spin 1.6s linear infinite;
     }
 
     /*
@@ -639,7 +614,7 @@ import { NAVIGATION_ITEMS } from './navigation.config';
      */
 
     .electric-ring::after {
-      content: '';
+      content: "";
 
       position: absolute;
       inset: 2px;
@@ -654,19 +629,11 @@ import { NAVIGATION_ITEMS } from './navigation.config';
      */
 
     .quick-action-button:not(.is-open) {
-      filter:
-        drop-shadow(
-          0 0 5px
-          rgba(34, 197, 94, 0.15)
-        );
+      filter: drop-shadow(0 0 5px rgba(34, 197, 94, 0.15));
     }
 
     .quick-action-button.is-open {
-      filter:
-        drop-shadow(
-          0 0 7px
-          rgba(0, 59, 112, 0.18)
-        );
+      filter: drop-shadow(0 0 7px rgba(0, 59, 112, 0.18));
     }
 
     /*
@@ -677,20 +644,16 @@ import { NAVIGATION_ITEMS } from './navigation.config';
       color: #16a34a;
 
       box-shadow:
-        0 0 0 1px
-          rgba(34, 197, 94, 0.08),
-        0 10px 30px
-          rgba(34, 197, 94, 0.20);
+        0 0 0 1px rgba(34, 197, 94, 0.08),
+        0 10px 30px rgba(34, 197, 94, 0.2);
     }
 
     .quick-action-button.is-open:hover {
       color: var(--color-brand);
 
       box-shadow:
-        0 0 0 1px
-          rgba(0, 59, 112, 0.08),
-        0 10px 30px
-          rgba(0, 59, 112, 0.20);
+        0 0 0 1px rgba(0, 59, 112, 0.08),
+        0 10px 30px rgba(0, 59, 112, 0.2);
     }
 
     /* ========================================================= */
@@ -700,24 +663,17 @@ import { NAVIGATION_ITEMS } from './navigation.config';
     @keyframes slideUp {
       from {
         opacity: 0;
-        transform:
-          translateY(24px)
-          scale(0.98);
+        transform: translateY(24px) scale(0.98);
       }
 
       to {
         opacity: 1;
-        transform:
-          translateY(0)
-          scale(1);
+        transform: translateY(0) scale(1);
       }
     }
 
     .animate-slide-up {
-      animation:
-        slideUp
-        220ms
-        cubic-bezier(0.2, 0.8, 0.2, 1);
+      animation: slideUp 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
     /* ========================================================= */
@@ -740,9 +696,7 @@ import { NAVIGATION_ITEMS } from './navigation.config';
 
     :host a:focus-visible,
     :host button:focus-visible {
-      outline:
-        2px solid
-        var(--color-text-primary);
+      outline: 2px solid var(--color-text-primary);
 
       outline-offset: 3px;
     }
@@ -751,9 +705,7 @@ import { NAVIGATION_ITEMS } from './navigation.config';
     /* REDUCED MOTION                                            */
     /* ========================================================= */
 
-    @media (
-      prefers-reduced-motion: reduce
-    ) {
+    @media (prefers-reduced-motion: reduce) {
       .animate-slide-up,
       .electric-ring {
         animation: none !important;
@@ -767,18 +719,15 @@ import { NAVIGATION_ITEMS } from './navigation.config';
     }
   `,
 
-  changeDetection:
-    ChangeDetectionStrategy.OnPush,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppNavigationComponent {
-  private readonly authService =
-    inject(AuthService);
+  private readonly authService = inject(AuthService);
+  readonly languageService = inject(LanguageService);
 
-  readonly isQuickActionsOpen =
-    signal(false);
+  readonly isQuickActionsOpen = signal(false);
 
-  readonly isMoreOpen =
-    signal(false);
+  readonly isMoreOpen = signal(false);
 
   /*
    * Quick Actions
@@ -786,29 +735,29 @@ export class AppNavigationComponent {
 
   readonly quickActions = [
     {
-      label: 'New Sale',
-      icon: 'quick-sale',
-      route: '/sales/new',
+      key: "newSale",
+      icon: "quick-sale",
+      route: "/sales/new",
     },
     {
-      label: 'Quick Bill',
-      icon: 'bill',
-      route: '/quick-bill',
+      key: "quickBill",
+      icon: "bill",
+      route: "/quick-bill",
     },
     {
-      label: 'New Handover',
-      icon: 'handover',
-      route: '/handover/new',
+      key: "newHandover",
+      icon: "handover",
+      route: "/handover/new",
     },
     {
-      label: 'New Report',
-      icon: 'report',
-      route: '/reports/new',
+      key: "newReport",
+      icon: "report",
+      route: "/reports/new",
     },
     {
-      label: 'New Booking',
-      icon: 'booking',
-      route: '/booking/new',
+      key: "newBooking",
+      icon: "booking",
+      route: "/booking/new",
     },
   ] as const;
 
@@ -820,39 +769,23 @@ export class AppNavigationComponent {
    * controlled by roles in config.
    */
 
-  readonly visibleNavigationItems =
-    computed(() => {
-      const user =
-        this.authService.currentUser();
+  readonly visibleNavigationItems = computed(() => {
+    const user = this.authService.currentUser();
 
-      if (!user) {
-        return [];
+    if (!user) {
+      return [];
+    }
+
+    const userRoles = (user.roles ?? []).map((role) => role.toUpperCase());
+
+    return NAVIGATION_ITEMS.filter((item) => {
+      if (!item.roles || item.roles.length === 0) {
+        return true;
       }
 
-      const userRoles =
-        (user.roles ?? []).map(
-          (role) =>
-            role.toUpperCase(),
-        );
-
-      return NAVIGATION_ITEMS.filter(
-        (item) => {
-          if (
-            !item.roles ||
-            item.roles.length === 0
-          ) {
-            return true;
-          }
-
-          return item.roles.some(
-            (role) =>
-              userRoles.includes(
-                role.toUpperCase(),
-              ),
-          );
-        },
-      );
+      return item.roles.some((role) => userRoles.includes(role.toUpperCase()));
     });
+  });
 
   /*
    * Mobile:
@@ -861,14 +794,11 @@ export class AppNavigationComponent {
    * Handover
    */
 
-  readonly primaryMobileNavigationItems =
-    computed(() =>
-      this.visibleNavigationItems().filter(
-        (item) =>
-          item.route === '/' ||
-          item.route === '/handover',
-      ),
-    );
+  readonly primaryMobileNavigationItems = computed(() =>
+    this.visibleNavigationItems().filter(
+      (item) => item.route === "/" || item.route === "/handover",
+    ),
+  );
 
   /*
    * Mobile More:
@@ -884,14 +814,11 @@ export class AppNavigationComponent {
    * user có quyền.
    */
 
-  readonly moreMenuItems =
-    computed(() =>
-      this.visibleNavigationItems().filter(
-        (item) =>
-          item.route !== '/' &&
-          item.route !== '/handover',
-      ),
-    );
+  readonly moreMenuItems = computed(() =>
+    this.visibleNavigationItems().filter(
+      (item) => item.route !== "/" && item.route !== "/handover",
+    ),
+  );
 
   /*
    * Desktop:
@@ -900,19 +827,16 @@ export class AppNavigationComponent {
    * by current user role.
    */
 
-  readonly desktopNavigationItems =
-    computed(() =>
-      this.visibleNavigationItems(),
-    );
+  readonly desktopNavigationItems = computed(() =>
+    this.visibleNavigationItems(),
+  );
 
   /*
    * Toggle Quick Actions
    */
 
   toggleQuickActions(): void {
-    this.isQuickActionsOpen.update(
-      (value) => !value,
-    );
+    this.isQuickActionsOpen.update((value) => !value);
 
     this.isMoreOpen.set(false);
   }
@@ -930,9 +854,7 @@ export class AppNavigationComponent {
    */
 
   toggleMore(): void {
-    this.isMoreOpen.update(
-      (value) => !value,
-    );
+    this.isMoreOpen.update((value) => !value);
 
     this.isQuickActionsOpen.set(false);
   }

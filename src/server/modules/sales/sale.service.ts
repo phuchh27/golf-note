@@ -77,6 +77,10 @@ export class SaleService {
         where: { id: { in: itemIds } },
         include: {
           stockBalance: true,
+          stockLoans: {
+            where: { status: "BORROWED" },
+            select: { lotId: true, quantity: true },
+          },
           stockLots: {
             where: { quantity: { gt: 0 } },
             orderBy: [{ expiresAt: "asc" }, { receivedAt: "asc" }],
@@ -96,30 +100,117 @@ export class SaleService {
         unitPrice: number;
       }> = [];
       let totalAmount = 0;
+      const today = new Date(
+        `${new Date().toISOString().slice(0, 10)}T00:00:00.000Z`,
+      );
+
+      const borrowedFromLot = (item: (typeof items)[number], lotId: string) =>
+        (item.stockLoans ?? [])
+          .filter((loan) => loan.lotId === lotId)
+          .reduce((total, loan) => total + Number(loan.quantity), 0);
+
+      const availableLotQuantity = (
+        item: (typeof items)[number],
+        lot: (typeof item.stockLots)[number],
+      ) => Math.max(0, Number(lot.quantity) - borrowedFromLot(item, lot.id));
+
+      const availableQuantity = (item: (typeof items)[number]) => {
+        const trackedQuantity = item.stockLots.reduce(
+          (total, lot) => total + Number(lot.quantity),
+          0,
+        );
+        const borrowedUntracked = (item.stockLoans ?? [])
+          .filter((loan) => !loan.lotId)
+          .reduce((total, loan) => total + Number(loan.quantity), 0);
+        const untrackedAvailable = Math.max(
+          0,
+          Number(item.stockBalance?.quantity ?? 0) -
+            trackedQuantity -
+            borrowedUntracked,
+        );
+        const lotAvailable = item.stockLots.reduce((total, lot) => {
+          if (lot.expiresAt && lot.expiresAt < today) return total;
+          return total + availableLotQuantity(item, lot);
+        }, 0);
+        return lotAvailable + untrackedAvailable;
+      };
+
+      const requestedByItem = new Map<string, number>();
+      for (const requested of requestedItems) {
+        requestedByItem.set(
+          requested.itemId,
+          (requestedByItem.get(requested.itemId) ?? 0) + requested.quantity,
+        );
+      }
+
+      for (const [itemId, quantity] of requestedByItem) {
+        const item = itemMap.get(itemId)!;
+        if (availableQuantity(item) < quantity) {
+          throw new Error(`INSUFFICIENT_STOCK:${item.sku}`);
+        }
+      }
 
       for (const requested of requestedItems) {
         const item = itemMap.get(requested.itemId)!;
         const available = Number(item.stockBalance?.quantity ?? 0);
 
-        if (available < requested.quantity) {
-          throw new Error(`INSUFFICIENT_STOCK:${item.sku}`);
+        if (item.status !== "ACTIVE") {
+          throw new Error(`SALE_ITEM_NOT_ACTIVE:${item.sku}`);
         }
 
         const unitPrice = Number(item.sellingPrice);
         totalAmount += requested.quantity * unitPrice;
+
+        if (requested.lotId) {
+          const selectedLot = item.stockLots.find(
+            (lot) => lot.id === requested.lotId,
+          );
+          if (!selectedLot) throw new Error(`SALE_LOT_NOT_FOUND:${item.sku}`);
+          if (selectedLot.expiresAt && selectedLot.expiresAt < today) {
+            throw new Error(`SALE_LOT_EXPIRED:${item.sku}`);
+          }
+          if (availableLotQuantity(item, selectedLot) < requested.quantity) {
+            throw new Error(`INSUFFICIENT_LOT_STOCK:${item.sku}`);
+          }
+          allocations.push({
+            itemId: item.id,
+            lotId: selectedLot.id,
+            quantity: requested.quantity,
+            unitPrice,
+          });
+          continue;
+        }
+
         let remaining = requested.quantity;
 
-        const lots = [...item.stockLots].sort((left, right) => {
-          if (!left.expiresAt && !right.expiresAt) return 0;
-          if (!left.expiresAt) return 1;
-          if (!right.expiresAt) return -1;
-          return left.expiresAt.getTime() - right.expiresAt.getTime();
-        });
+        const lots = [...item.stockLots]
+          .filter(
+            (lot) =>
+              (!lot.expiresAt || lot.expiresAt >= today) &&
+              availableLotQuantity(item, lot) > 0,
+          )
+          .sort((left, right) => {
+            if (!left.expiresAt && !right.expiresAt) return 0;
+            if (!left.expiresAt) return 1;
+            if (!right.expiresAt) return -1;
+            return left.expiresAt.getTime() - right.expiresAt.getTime();
+          });
+
+        const expiryKinds = new Set(
+          lots.map((lot) =>
+            lot.expiresAt
+              ? lot.expiresAt.toISOString().slice(0, 10)
+              : "NO_EXPIRY",
+          ),
+        );
+        if (expiryKinds.size > 1) {
+          throw new Error(`SALE_LOT_REQUIRED:${item.sku}`);
+        }
 
         for (const lot of lots) {
           if (remaining <= 0) break;
 
-          const quantity = Math.min(remaining, Number(lot.quantity));
+          const quantity = Math.min(remaining, availableLotQuantity(item, lot));
           allocations.push({
             itemId: item.id,
             lotId: lot.id,
@@ -127,6 +218,22 @@ export class SaleService {
             unitPrice,
           });
           remaining -= quantity;
+        }
+
+        const trackedQuantity = item.stockLots.reduce(
+          (total, lot) => total + Number(lot.quantity),
+          0,
+        );
+        const borrowedUntracked = (item.stockLoans ?? [])
+          .filter((loan) => !loan.lotId)
+          .reduce((total, loan) => total + Number(loan.quantity), 0);
+        const untrackedQuantity = Math.max(
+          0,
+          available - trackedQuantity - borrowedUntracked,
+        );
+
+        if (remaining > untrackedQuantity) {
+          throw new Error(`INSUFFICIENT_STOCK:${item.sku}`);
         }
 
         if (remaining > 0) {
@@ -228,19 +335,26 @@ export class SaleService {
   }
 
   private normalizeItems(items: CreateSaleInput["items"]) {
-    const normalized = new Map<string, number>();
+    const normalized = new Map<
+      string,
+      { itemId: string; lotId?: string; quantity: number }
+    >();
 
     for (const item of items) {
       const quantity = Number(item.quantity);
       if (!item.itemId || !Number.isFinite(quantity) || quantity <= 0) {
         throw new Error("SALE_ITEM_INVALID");
       }
-      normalized.set(
-        item.itemId,
-        (normalized.get(item.itemId) ?? 0) + quantity,
-      );
+      const lotId = item.lotId?.trim() || undefined;
+      const key = `${item.itemId}:${lotId ?? "AUTO"}`;
+      const previous = normalized.get(key);
+      normalized.set(key, {
+        itemId: item.itemId,
+        lotId,
+        quantity: (previous?.quantity ?? 0) + quantity,
+      });
     }
 
-    return [...normalized].map(([itemId, quantity]) => ({ itemId, quantity }));
+    return [...normalized.values()];
   }
 }

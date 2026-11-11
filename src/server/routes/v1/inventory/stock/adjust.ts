@@ -6,10 +6,13 @@ import { requireInventoryManager } from "../require-inventory-manager";
 const service = new StockService();
 
 export default defineEventHandler(async (event) => {
-  await requireInventoryManager(event);
+  const user = await requireInventoryManager(event);
 
   try {
-    const result = await service.adjustStock(await readBody(event));
+    const result = await service.adjustStock({
+      ...(await readBody(event)),
+      createdBy: user.id,
+    });
 
     return {
       success: true,

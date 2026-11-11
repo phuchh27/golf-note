@@ -1,0 +1,97 @@
+<main class="mx-auto min-h-screen w-full max-w-7xl px-5 py-6 pb-32 lg:px-8">
+  <header class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-[0.25em] text-(--color-brand)">{{ languageService.dictionary().archive.eyebrow }}</p>
+      <h1 class="mt-2 text-3xl font-bold tracking-tight text-(--color-text-primary) sm:text-4xl">{{ languageService.dictionary().archive.title }}</h1>
+      <p class="mt-2 max-w-2xl text-sm text-(--color-text-secondary)">{{ languageService.dictionary().archive.description }}</p>
+    </div>
+    <button type="button" class="gn-button-primary inline-flex items-center justify-center gap-2 px-5" (click)="openCreate()">
+      <app-icon name="plus" [size]="17" />{{ languageService.dictionary().archive.addEntry }}
+    </button>
+  </header>
+
+  <section class="overflow-hidden rounded-3xl border border-white/70 bg-white/80 shadow-(--shadow-lg) backdrop-blur-2xl">
+    <div class="flex flex-col gap-3 border-b border-black/5 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+      <input class="gn-input sm:max-w-md" type="search" aria-label="Search archive" [placeholder]="languageService.dictionary().archive.search" [ngModel]="search()" (ngModelChange)="search.set($event)" />
+      <select class="gn-input sm:max-w-52" aria-label="Filter archive type" [ngModel]="typeFilter()" (ngModelChange)="typeFilter.set($event)" [ngModelOptions]="{standalone:true}">
+        <option value="">{{ languageService.dictionary().archive.allTypes }}</option>
+        <option value="TEXT">{{ languageService.dictionary().archive.textType }}</option>
+        <option value="LINK">{{ languageService.dictionary().archive.linkType }}</option>
+      </select>
+    </div>
+
+    @if (isLoading()) {
+      <div class="p-14 text-center text-sm text-(--color-text-secondary)">Loading...</div>
+    } @else if (filteredEntries().length === 0) {
+      <div class="p-14 text-center text-sm text-(--color-text-secondary)">{{ languageService.dictionary().archive.empty }}</div>
+    } @else {
+      <div class="grid gap-4 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-3">
+        @for (entry of filteredEntries(); track entry.id) {
+          <article class="group flex min-h-52 flex-col rounded-2xl border border-black/5 bg-white p-4 shadow-(--shadow-sm) transition hover:-translate-y-0.5 hover:border-(--color-brand)/20 hover:shadow-(--shadow-md)">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex min-w-0 items-center gap-3">
+                <button type="button" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-(--color-brand-light) text-(--color-brand) transition hover:bg-(--color-brand) hover:text-white" title="Open or copy archive entry" [attr.aria-label]="entry.type === 'LINK' ? languageService.dictionary().archive.openLink : languageService.dictionary().archive.copy" (click)="activateEntry(entry)">
+                  <app-icon [name]="entry.type === 'LINK' ? 'booking' : 'report'" [size]="20" />
+                </button>
+                <div class="min-w-0">
+                  <span class="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-600">{{ typeLabel(entry.type) }}</span>
+                  <h2 class="mt-1 truncate font-bold text-(--color-text-primary)" [title]="entry.title || languageService.dictionary().archive.noTitle">{{ entry.title || languageService.dictionary().archive.noTitle }}</h2>
+                </div>
+              </div>
+              <div class="flex shrink-0 gap-1">
+                <button type="button" class="flex h-9 w-9 items-center justify-center rounded-lg text-(--color-text-muted) hover:bg-(--color-background-soft) hover:text-(--color-brand)" title="Edit archive entry" [attr.aria-label]="languageService.dictionary().archive.edit" (click)="openEdit(entry)"><app-icon name="settings" [size]="16" /></button>
+                <button type="button" class="flex h-9 w-9 items-center justify-center rounded-lg text-(--color-text-muted) hover:bg-rose-50 hover:text-rose-600" title="Delete archive entry" [attr.aria-label]="languageService.dictionary().archive.delete" (click)="deleteEntry(entry)"><span aria-hidden="true">×</span></button>
+              </div>
+            </div>
+            @if (entry.type === 'LINK') {
+              <button type="button" class="mt-4 break-all text-left text-sm text-(--color-brand) underline decoration-(--color-brand)/30 underline-offset-2" (click)="activateEntry(entry)">{{ entry.content }}</button>
+            } @else {
+              <button type="button" class="mt-4 line-clamp-4 whitespace-pre-wrap wrap-break-word text-left text-sm leading-6 text-(--color-text-secondary)" aria-label="Copy archive text" title="Copy archive text" (click)="activateEntry(entry)">{{ entry.content }}</button>
+            }
+            <div class="mt-auto flex items-center justify-between gap-2 pt-4 text-[11px] text-(--color-text-muted)">
+              <span>{{ entry.updatedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+              <button type="button" class="font-semibold text-(--color-brand) opacity-80 transition group-hover:opacity-100" (click)="activateEntry(entry)">{{ entry.type === 'LINK' ? languageService.dictionary().archive.openLink : languageService.dictionary().archive.copy }}</button>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+
+  @if (editorOpen()) {
+    <div class="fixed inset-0 z-60 flex items-end justify-center overflow-y-auto bg-slate-950/30 p-0 backdrop-blur-sm sm:items-center sm:p-5" (click)="closeEditor()">
+      <section class="my-auto w-full max-w-xl rounded-t-3xl border border-white/70 bg-white p-5 shadow-2xl sm:rounded-3xl" (click)="$event.stopPropagation()">
+        <header class="mb-5 flex items-start justify-between gap-4">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-(--color-brand)">{{ languageService.dictionary().archive.eyebrow }}</p>
+            <h2 class="mt-2 text-2xl font-bold text-(--color-text-primary)">{{ editingId() ? languageService.dictionary().archive.edit : languageService.dictionary().archive.addEntry }}</h2>
+          </div>
+          <button type="button" class="flex h-9 w-9 items-center justify-center rounded-full bg-black/5 text-lg" aria-label="Close" (click)="closeEditor()">×</button>
+        </header>
+        <form class="grid gap-4" (ngSubmit)="saveEntry()">
+          <label class="text-sm font-semibold text-(--color-text-secondary)">{{ languageService.dictionary().archive.titleLabel }}
+            <input class="gn-input mt-2" maxlength="160" required [ngModel]="draftTitle()" (ngModelChange)="draftTitle.set($event)" name="archiveTitle" />
+          </label>
+          <label class="text-sm font-semibold text-(--color-text-secondary)">{{ languageService.dictionary().archive.imageType }} / {{ languageService.dictionary().archive.textType }} / {{ languageService.dictionary().archive.linkType }}
+            <select class="gn-input mt-2" [ngModel]="draftType()" (ngModelChange)="draftType.set($event)" name="archiveType">
+              <option value="TEXT">{{ languageService.dictionary().archive.textType }}</option>
+              <option value="LINK">{{ languageService.dictionary().archive.linkType }}</option>
+              <option value="IMAGE" disabled>{{ languageService.dictionary().archive.imageType }} — {{ languageService.dictionary().archive.imageComingSoon }}</option>
+            </select>
+          </label>
+          <label class="text-sm font-semibold text-(--color-text-secondary)">{{ languageService.dictionary().archive.contentLabel }}
+            @if (draftType() === 'LINK') {
+              <input class="gn-input mt-2" type="url" required maxlength="2048" [placeholder]="languageService.dictionary().archive.linkPlaceholder" [ngModel]="draftContent()" (ngModelChange)="draftContent.set($event)" name="archiveContent" />
+            } @else {
+              <textarea class="gn-input mt-2 min-h-40" required maxlength="50000" [placeholder]="languageService.dictionary().archive.textPlaceholder" [ngModel]="draftContent()" (ngModelChange)="draftContent.set($event)" name="archiveContent"></textarea>
+            }
+          </label>
+          <footer class="flex justify-end gap-3 border-t border-black/5 pt-4">
+            <button type="button" class="rounded-xl px-4 py-3 text-sm font-semibold text-(--color-text-secondary)" (click)="closeEditor()">{{ languageService.dictionary().archive.cancel }}</button>
+            <button type="submit" class="gn-button-primary px-5" [disabled]="isSaving()">{{ isSaving() ? '...' : languageService.dictionary().archive.save }}</button>
+          </footer>
+        </form>
+      </section>
+    </div>
+  }
+</main>

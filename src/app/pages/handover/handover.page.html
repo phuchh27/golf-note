@@ -1,0 +1,113 @@
+<main class="mx-auto min-h-screen w-full max-w-7xl px-5 py-6 pb-32 lg:px-8">
+  <header class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-[0.25em] text-(--color-brand)">{{ languageService.dictionary().handover.eyebrow }}</p>
+      <h1 class="mt-2 text-3xl font-bold tracking-tight text-(--color-text-primary) sm:text-4xl">{{ languageService.dictionary().handover.title }}</h1>
+      <p class="mt-2 max-w-2xl text-sm text-(--color-text-secondary)">{{ languageService.dictionary().handover.description }}</p>
+    </div>
+    <button type="button" class="inline-flex min-h-11 items-center gap-2 rounded-xl border border-black/10 bg-white px-4 text-sm font-semibold text-(--color-text-secondary) hover:border-(--color-brand) hover:text-(--color-brand)" (click)="loadTasks()" [disabled]="isLoading()">
+      <app-icon name="handover" [size]="17" />{{ languageService.dictionary().handover.refresh }}
+    </button>
+  </header>
+
+  <section class="mb-6 rounded-3xl border border-white/70 bg-white/80 p-5 shadow-(--shadow-lg) backdrop-blur-2xl sm:p-6">
+    <h2 class="text-xl font-bold text-(--color-text-primary)">{{ languageService.dictionary().handover.createTitle }}</h2>
+    <form class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" (ngSubmit)="createTask()">
+      <label class="text-sm font-semibold text-(--color-text-secondary) sm:col-span-2 lg:col-span-1">{{ languageService.dictionary().handover.taskTitle }}
+        <input class="gn-input mt-2" required maxlength="160" [ngModel]="form().title" (ngModelChange)="setFormField('title', $event)" name="title" />
+      </label>
+      <label class="text-sm font-semibold text-(--color-text-secondary)">{{ languageService.dictionary().handover.area }}
+        <input class="gn-input mt-2" [placeholder]="languageService.dictionary().handover.areaPlaceholder" [ngModel]="form().area" (ngModelChange)="setFormField('area', $event)" name="area" />
+      </label>
+      <label class="text-sm font-semibold text-(--color-text-secondary)">{{ languageService.dictionary().handover.assignee }}
+        <input class="gn-input mt-2" [placeholder]="languageService.dictionary().handover.assigneePlaceholder" [ngModel]="form().assigneeUsername" (ngModelChange)="setFormField('assigneeUsername', $event)" name="assigneeUsername" />
+      </label>
+      <label class="text-sm font-semibold text-(--color-text-secondary)">{{ languageService.dictionary().handover.priority }}
+        <select class="gn-input mt-2" [ngModel]="form().priority" (ngModelChange)="setFormField('priority', $event)" name="priority">
+          <option value="LOW">{{ languageService.dictionary().handover.low }}</option>
+          <option value="NORMAL">{{ languageService.dictionary().handover.normal }}</option>
+          <option value="HIGH">{{ languageService.dictionary().handover.high }}</option>
+          <option value="URGENT">{{ languageService.dictionary().handover.urgent }}</option>
+        </select>
+      </label>
+      <label class="text-sm font-semibold text-(--color-text-secondary)">{{ languageService.dictionary().handover.dueDate }}
+        <input class="gn-input mt-2" type="date" [ngModel]="form().dueAt" (ngModelChange)="setFormField('dueAt', $event)" name="dueAt" />
+      </label>
+      <label class="text-sm font-semibold text-(--color-text-secondary) sm:col-span-2 lg:col-span-3">{{ languageService.dictionary().handover.descriptionLabel }}
+        <textarea class="gn-input mt-2 min-h-20" [ngModel]="form().description" (ngModelChange)="setFormField('description', $event)" name="description"></textarea>
+      </label>
+      <label class="text-sm font-semibold text-(--color-text-secondary) sm:col-span-2 lg:col-span-3">{{ languageService.dictionary().handover.note }}
+        <input class="gn-input mt-2" [ngModel]="form().note" (ngModelChange)="setFormField('note', $event)" name="note" />
+      </label>
+      <div class="flex justify-end sm:col-span-2 lg:col-span-3">
+        <button type="submit" class="gn-button-primary inline-flex items-center gap-2 px-5" [disabled]="isSaving()">
+          <app-icon name="plus" [size]="17" />{{ isSaving() ? languageService.dictionary().handover.saving : languageService.dictionary().handover.createTask }}
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <section class="overflow-hidden rounded-3xl border border-white/70 bg-white/80 shadow-(--shadow-lg)">
+    <div class="flex flex-col gap-3 border-b border-black/5 p-5 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h2 class="text-xl font-bold text-(--color-text-primary)">{{ languageService.dictionary().handover.taskList }}</h2>
+        <p class="mt-1 text-sm text-(--color-text-secondary)">{{ tasks().length }} {{ languageService.dictionary().handover.tasksCount }}</p>
+      </div>
+      <select class="gn-input sm:max-w-56" title="Filter tasks by status" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event); loadTasks()" [ngModelOptions]="{standalone: true}" [attr.aria-label]="languageService.dictionary().handover.filterStatus" [title]="languageService.dictionary().handover.filterStatus">
+        <option value="">{{ languageService.dictionary().handover.allStatuses }}</option>
+        <option value="OPEN">{{ languageService.dictionary().handover.open }}</option>
+        <option value="IN_PROGRESS">{{ languageService.dictionary().handover.inProgress }}</option>
+        <option value="BLOCKED">{{ languageService.dictionary().handover.blocked }}</option>
+        <option value="DONE">{{ languageService.dictionary().handover.done }}</option>
+        <option value="CANCELLED">{{ languageService.dictionary().handover.cancelled }}</option>
+      </select>
+    </div>
+
+    @if (isLoading()) {
+      <div class="p-14 text-center text-sm text-(--color-text-secondary)">{{ languageService.dictionary().handover.loading }}</div>
+    } @else if (tasks().length === 0) {
+      <div class="p-14 text-center text-sm text-(--color-text-secondary)">{{ languageService.dictionary().handover.empty }}</div>
+    } @else {
+      <div class="divide-y divide-black/5">
+        @for (task of tasks(); track task.id) {
+          <article class="grid gap-4 p-5 lg:grid-cols-[1fr_260px] lg:items-start">
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <h3 class="font-bold text-(--color-text-primary)">{{ task.title }}</h3>
+                <span class="rounded-full px-2.5 py-1 text-[11px] font-bold" [class.bg-rose-50]="task.priority === 'URGENT' || task.priority === 'HIGH'" [class.text-rose-700]="task.priority === 'URGENT' || task.priority === 'HIGH'" [class.bg-slate-100]="task.priority === 'LOW' || task.priority === 'NORMAL'" [class.text-slate-700]="task.priority === 'LOW' || task.priority === 'NORMAL'">{{ priorityText(task.priority) }}</span>
+                @if (isOverdue(task)) { <span class="rounded-full bg-rose-50 px-2.5 py-1 text-[11px] font-bold text-rose-700">{{ languageService.dictionary().handover.overdue }}</span> }
+              </div>
+              @if (task.description) { <p class="mt-2 whitespace-pre-wrap text-sm text-(--color-text-secondary)">{{ task.description }}</p> }
+              <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-(--color-text-muted)">
+                @if (task.area) { <span>{{ languageService.dictionary().handover.area }}: {{ task.area }}</span> }
+                <span>{{ languageService.dictionary().handover.createdBy }}: {{ task.creatorName }}</span>
+                @if (task.assigneeName) { <span>{{ languageService.dictionary().handover.assignee }}: {{ task.assigneeName }}</span> }
+                @if (task.dueAt) { <span>{{ languageService.dictionary().handover.dueDate }}: {{ task.dueAt | date: 'dd/MM/yyyy' }}</span> }
+              </div>
+              @if (task.updates.length) {
+                <div class="mt-4 space-y-2 border-l-2 border-(--color-brand)/20 pl-3">
+                  @for (update of task.updates.slice(0, 3); track update.id) {
+                    <p class="text-xs text-(--color-text-muted)"><span class="font-semibold text-(--color-text-secondary)">{{ statusText(update.status) }}</span> · {{ update.actorName }} · {{ update.createdAt | date: 'dd/MM HH:mm' }}@if (update.note) {<span> — {{ update.note }}</span>}</p>
+                  }
+                </div>
+              }
+            </div>
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-bold uppercase tracking-wide text-(--color-text-muted)">{{ languageService.dictionary().handover.statusLabel }}
+                <select class="gn-input mt-1" [ngModel]="task.status" (ngModelChange)="updateStatus(task, $event)" [ngModelOptions]="{standalone: true}" [disabled]="isSaving()">
+                  <option value="OPEN">{{ languageService.dictionary().handover.open }}</option>
+                  <option value="IN_PROGRESS">{{ languageService.dictionary().handover.inProgress }}</option>
+                  <option value="BLOCKED">{{ languageService.dictionary().handover.blocked }}</option>
+                  <option value="DONE">{{ languageService.dictionary().handover.done }}</option>
+                  <option value="CANCELLED">{{ languageService.dictionary().handover.cancelled }}</option>
+                </select>
+              </label>
+              <input class="gn-input" placeholder="Add an update note" title="Add an update note" [placeholder]="languageService.dictionary().handover.updateNote" [attr.aria-label]="languageService.dictionary().handover.updateNote" [ngModel]="noteDrafts()[task.id] || ''" (ngModelChange)="updateNote(task.id, $event)" [ngModelOptions]="{standalone: true}" />
+              <button type="button" class="min-h-10 rounded-xl border border-black/10 px-3 text-xs font-semibold text-(--color-text-secondary) hover:border-(--color-brand) hover:text-(--color-brand)" (click)="updateStatus(task, task.status)" [disabled]="isSaving()">{{ languageService.dictionary().handover.addUpdate }}</button>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</main>

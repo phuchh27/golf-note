@@ -9,6 +9,7 @@ import {
 import { Router } from "@angular/router";
 
 import { AuthService } from "../../auth/auth.service";
+import { LanguageService } from "../../i18n/language.service";
 import { IconComponent } from "../../ui/icon/icon.component";
 
 @Component({
@@ -21,6 +22,7 @@ import { IconComponent } from "../../ui/icon/icon.component";
 export class UserMenuComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  readonly languageService = inject(LanguageService);
 
   readonly isOpen = signal(false);
 
@@ -48,5 +50,9 @@ export class UserMenuComponent {
 
   stop(event: Event) {
     event.stopPropagation();
+  }
+
+  toggleLanguage(): void {
+    this.languageService.toggleLanguage();
   }
 }

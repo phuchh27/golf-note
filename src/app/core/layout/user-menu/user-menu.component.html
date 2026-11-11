@@ -141,24 +141,34 @@
 
       <!-- MENU -->
 
-      <button class="flex w-full items-center gap-3 px-5 py-4 hover:bg-black/[0.03]">
+      <button type="button" class="flex w-full items-center gap-3 px-5 py-4 hover:bg-black/3">
         <app-icon name="user" [size]="20"/>
-        Profile
+        {{ languageService.dictionary().common.profile }}
       </button>
 
-      <button class="flex w-full items-center gap-3 px-5 py-4 hover:bg-black/[0.03]">
-        <app-icon name="language" [size]="20"/>
-        Language
+      <button
+        type="button"
+        class="flex w-full items-center justify-between gap-3 px-5 py-4 hover:bg-black/3"
+        [attr.aria-label]="languageService.dictionary().common.switchLanguage"
+        (click)="toggleLanguage()"
+      >
+        <span class="flex items-center gap-3">
+          <app-icon name="language" [size]="20"/>
+          {{ languageService.dictionary().common.language }}
+        </span>
+        <span class="text-xs font-semibold uppercase text-(--color-text-muted)">
+          {{ languageService.language() }}
+        </span>
       </button>
 
-      <button class="flex w-full items-center gap-3 px-5 py-4 hover:bg-black/[0.03]">
+      <button type="button" class="flex w-full items-center gap-3 px-5 py-4 hover:bg-black/3">
         <app-icon name="theme" [size]="20"/>
-        Appearance
+        {{ languageService.dictionary().common.appearance }}
       </button>
 
-      <button class="flex w-full items-center gap-3 px-5 py-4 hover:bg-black/[0.03]">
+      <button type="button" class="flex w-full items-center gap-3 px-5 py-4 hover:bg-black/3">
         <app-icon name="notification" [size]="20"/>
-        Notifications
+        {{ languageService.dictionary().common.notifications }}
       </button>
 
       <div class="mx-5 border-t border-black/5"></div>
@@ -181,7 +191,7 @@
           [size]="20"
         />
 
-        Logout
+        {{ languageService.dictionary().common.logout }}
 
       </button>
 
