@@ -14,6 +14,10 @@ Run `npm start` for a dev server. Navigate to `http://localhost:5173/`. The appl
 
 Run `npm run build` to build the client/server project. The client build artifacts are located in the `dist/analog/public` directory. The server for the API build artifacts are located in the `dist/analog/server` directory.
 
+## Deploy to Vercel
+
+See [doc/deploy-vercel.md](doc/deploy-vercel.md) for Vercel project settings, environment variables, database migrations, initial admin setup, and deployment checks.
+
 ## Test
 
 Run `npm run test` to run unit tests with [Vitest](https://vitest.dev).

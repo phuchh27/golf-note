@@ -2,6 +2,7 @@
 
 # Compiled output
 /dist
+/.vercel
 /tmp
 /out-tsc
 /bazel-out
@@ -45,5 +46,6 @@ Thumbs.db
 
 # Environment files
 .env*
+!.env.example
 
 /generated/prisma
