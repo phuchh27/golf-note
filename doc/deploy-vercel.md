@@ -19,13 +19,13 @@ Do not run schema-changing migrations automatically in every Vercel build: Previ
 
 Import the Git repository into Vercel and use the repository root as the project root.
 
-| Setting | Value |
-| --- | --- |
+| Setting          | Value                                                                                                              |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------ |
 | Framework preset | Analog, if detected automatically; otherwise use the default/Other preset without overriding Analog's build output |
-| Install command | `npm ci` (default is also acceptable) |
-| Build command | `npm run build` |
-| Output directory | Leave unset; Analog writes Vercel's Build Output API output |
-| Node.js version | `24.x` for both build and server functions |
+| Install command  | `npm ci` (default is also acceptable)                                                                              |
+| Build command    | `npm run build`                                                                                                    |
+| Output directory | Leave unset; Analog writes Vercel's Build Output API output                                                        |
+| Node.js version  | `24.x` for both build and server functions                                                                         |
 
 Analog normally detects Vercel automatically. If the build does not produce `.vercel/output`, add `BUILD_PRESET=vercel` to the Vercel project's environment variables and redeploy. Do not set a static output directory such as `dist/analog/public`; that would omit SSR and API routes.
 
@@ -33,10 +33,10 @@ Analog normally detects Vercel automatically. If the build does not produce `.ve
 
 In **Project Settings → Environment Variables**, add:
 
-| Variable | Required | Environments | Purpose |
-| --- | --- | --- | --- |
-| `DATABASE_URL` | Yes | Every environment that builds or runs the app | PostgreSQL URL used when Analog loads server/API modules during build and by Prisma at runtime |
-| `BUILD_PRESET` | Only if preset auto-detection fails | Environments where the build runs | Set to `vercel` as a preset-detection fallback |
+| Variable       | Required                            | Environments                                  | Purpose                                                                                        |
+| -------------- | ----------------------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `DATABASE_URL` | Yes                                 | Every environment that builds or runs the app | PostgreSQL URL used when Analog loads server/API modules during build and by Prisma at runtime |
+| `BUILD_PRESET` | Only if preset auto-detection fails | Environments where the build runs             | Set to `vercel` as a preset-detection fallback                                                 |
 
 Use a separate database/branch for Preview where possible. The Vercel build needs this value too; a missing value causes server module loading to fail. Do not use a Vite-prefixed variable for database credentials, and never commit real environment values. `.env.example` contains placeholders only.
 
