@@ -10,6 +10,9 @@
     "dev": "vite",
     "start": "npm run dev",
     "build": "vite build",
+    "postinstall": "prisma generate",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "tsx prisma/seed.ts",
     "watch": "vite build --watch",
     "test": "vitest",
     "preview": "node dist/analog/server/index.mjs"
