@@ -19,4 +19,5 @@ export type IconName =
   | "notification"
   | "chevron-down"
   | "clock"
-  | "task";
+  | "task"
+  | "archive";

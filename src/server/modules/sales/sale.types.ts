@@ -3,6 +3,7 @@ export type SaleCustomerType = "ROOM" | "EXTERNAL";
 export interface CreateSaleItemInput {
   itemId: string;
   quantity: number | string;
+  lotId?: string;
 }
 
 export interface CreateSaleInput {

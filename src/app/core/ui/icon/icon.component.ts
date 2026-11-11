@@ -30,7 +30,8 @@ import {
   lucideBell,
   lucideChevronDown,
   lucideClockFading,
-  lucideClipboardList
+  lucideClipboardList,
+  lucideArchive
 } from "@ng-icons/lucide";
 
 import { IconName } from "./icon.types";
@@ -64,7 +65,8 @@ import { IconName } from "./icon.types";
       lucideBell,
       lucideChevronDown,
       lucideClockFading,
-      lucideClipboardList
+      lucideClipboardList,
+      lucideArchive
     }),
   ],
 
@@ -225,5 +227,6 @@ const ICON_MAP: Record<IconName, string> = {
   notification: "lucideBell",
   "chevron-down": "lucideChevronDown",
   clock: "lucideClockFading",
-  task:"lucideClipboardList"
+  task:"lucideClipboardList",
+  archive: "lucideArchive"
 };

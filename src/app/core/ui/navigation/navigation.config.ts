@@ -14,6 +14,7 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
   { label: 'Inventory', route: '/inventory', icon: 'inventory' },
   { label: 'Sales', route: '/sales', icon: 'sales' },
   { label: 'Reports', route: '/reports', icon: 'report' },
+  { label: 'Archive', route: '/archive', icon: 'archive' },
   { label: 'Manager', route: '/manager', icon: 'manager', roles: ['ADMIN', 'MANAGER'] },
   { label: 'Admin', route: '/admin', icon: 'admin', roles: ['ADMIN','SUPER_ADMIN'] },
 ];

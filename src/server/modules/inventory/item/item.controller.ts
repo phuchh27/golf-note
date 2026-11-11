@@ -33,7 +33,8 @@ export class ItemController {
   }
 
   static async create(c: Context) {
-    const item = await service.createItem(await c.req.json());
+    const body = await c.req.json();
+    const item = await service.createItem({ ...body, status: "ACTIVE" });
 
     return c.json({ success: true, data: item }, 201);
   }
@@ -45,8 +46,30 @@ export class ItemController {
       return c.json({ success: false, message: "Item ID is required" }, 400);
     }
 
-    const item = await service.updateItem(id, await c.req.json());
+    const body = await c.req.json();
+    if (Object.hasOwn(body, "status")) {
+      return c.json(
+        {
+          success: false,
+          message: "Item status changes require administrator permission",
+        },
+        403,
+      );
+    }
 
+    const item = await service.updateItem(id, body);
+
+    return c.json({ success: true, data: item });
+  }
+
+  static async updateStatus(c: Context) {
+    const id = c.req.param("id");
+    if (!id) {
+      return c.json({ success: false, message: "Item ID is required" }, 400);
+    }
+
+    const { status } = await c.req.json();
+    const item = await service.updateItem(id, { status });
     return c.json({ success: true, data: item });
   }
 
