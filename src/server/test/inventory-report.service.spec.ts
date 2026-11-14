@@ -142,4 +142,170 @@ describe("InventoryReportService", () => {
     );
     expect(result.salesTotal).toBe(20);
   });
+
+  it("omits items with no month-end stock and no sales in the month", async () => {
+    prismaMock.item.findMany.mockResolvedValue([
+      {
+        id: "item-in-stock",
+        sku: "WATER-1",
+        name: "Water",
+        status: "ACTIVE",
+        unit: "bottle",
+        categoryId: "cat-1",
+        category: { id: "cat-1", code: "WATER", name: "Water" },
+        stockBalance: { quantity: 3 },
+        stockLots: [],
+      },
+      {
+        id: "item-empty",
+        sku: "JUICE-1",
+        name: "Juice",
+        status: "ACTIVE",
+        unit: "bottle",
+        categoryId: "cat-1",
+        category: { id: "cat-1", code: "WATER", name: "Water" },
+        stockBalance: { quantity: 0 },
+        stockLots: [
+          {
+            id: "lot-empty",
+            batchCode: "EXPIRED",
+            producedAt: null,
+            expiresAt: new Date("2026-01-01T00:00:00.000Z"),
+            quantity: 0,
+          },
+        ],
+      },
+    ]);
+    prismaMock.sale.findMany.mockResolvedValue([]);
+    prismaMock.stockMovement.findMany.mockResolvedValue([]);
+    prismaMock.user.findMany.mockResolvedValue([]);
+
+    const result = await new InventoryReportService().getMonthlySummary("2026-10");
+
+    expect(result.itemCount).toBe(1);
+    expect(result.categoryCount).toBe(1);
+    expect(result.categories).toHaveLength(1);
+    expect(result.categories[0].items.map((item) => item.id)).toEqual([
+      "item-in-stock",
+    ]);
+  });
+
+  it("keeps an item with no remaining stock when it had sales during the month", async () => {
+    prismaMock.item.findMany.mockResolvedValue([
+      {
+        id: "item-sold",
+        sku: "WATER-1",
+        name: "Water",
+        status: "ACTIVE",
+        unit: "bottle",
+        categoryId: "cat-1",
+        category: { id: "cat-1", code: "WATER", name: "Water" },
+        stockBalance: { quantity: 0 },
+        stockLots: [],
+      },
+    ]);
+    prismaMock.sale.findMany.mockResolvedValue([
+      {
+        id: "sale-1",
+        soldAt: new Date("2026-10-10T10:00:00.000Z"),
+        customerType: "ROOM",
+        roomNumber: "12",
+        customerName: null,
+        createdBy: "user-1",
+        totalAmount: 20,
+        items: [
+          {
+            id: "line-1",
+            itemId: "item-sold",
+            item: { sku: "WATER-1", name: "Water", unit: "bottle" },
+            lot: null,
+            quantity: 2,
+            unitPrice: 10,
+            totalPrice: 20,
+          },
+        ],
+      },
+    ]);
+    prismaMock.stockMovement.findMany.mockResolvedValue([]);
+    prismaMock.user.findMany.mockResolvedValue([]);
+
+    const result = await new InventoryReportService().getMonthlySummary("2026-10");
+
+    expect(result.itemCount).toBe(1);
+    expect(result.categories[0].items[0]).toMatchObject({
+      id: "item-sold",
+      quantity: 0,
+      soldQuantity: 2,
+    });
+  });
+
+  it("omits zero-stock lots unless the lot had sales during the month", async () => {
+    prismaMock.item.findMany.mockResolvedValue([
+      {
+        id: "item-1",
+        sku: "WATER-1",
+        name: "Water",
+        status: "ACTIVE",
+        unit: "bottle",
+        categoryId: "cat-1",
+        category: { id: "cat-1", code: "WATER", name: "Water" },
+        stockBalance: { quantity: 2 },
+        stockLots: [
+          {
+            id: "lot-in-stock",
+            batchCode: "IN-STOCK",
+            producedAt: null,
+            expiresAt: new Date("2027-06-01T00:00:00.000Z"),
+            quantity: 2,
+          },
+          {
+            id: "lot-empty",
+            batchCode: "EMPTY",
+            producedAt: null,
+            expiresAt: null,
+            quantity: 0,
+          },
+          {
+            id: "lot-sold",
+            batchCode: "SOLD-OUT",
+            producedAt: null,
+            expiresAt: null,
+            quantity: 0,
+          },
+        ],
+      },
+    ]);
+    prismaMock.sale.findMany.mockResolvedValue([
+      {
+        id: "sale-1",
+        soldAt: new Date("2026-10-10T10:00:00.000Z"),
+        customerType: "ROOM",
+        roomNumber: "12",
+        customerName: null,
+        createdBy: "user-1",
+        totalAmount: 20,
+        items: [
+          {
+            id: "line-1",
+            itemId: "item-1",
+            lotId: "lot-sold",
+            item: { sku: "WATER-1", name: "Water", unit: "bottle" },
+            lot: { id: "lot-sold", expiresAt: null },
+            quantity: 2,
+            unitPrice: 10,
+            totalPrice: 20,
+          },
+        ],
+      },
+    ]);
+    prismaMock.stockMovement.findMany.mockResolvedValue([]);
+    prismaMock.user.findMany.mockResolvedValue([]);
+
+    const result = await new InventoryReportService().getMonthlySummary("2026-10");
+
+    expect(result.categories[0].items[0].lots.map((lot) => lot.id)).toEqual([
+      "lot-in-stock",
+      "lot-sold",
+    ]);
+  });
 });

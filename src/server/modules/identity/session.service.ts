@@ -3,16 +3,22 @@ import { TokenService } from "../../core/security";
 import { prisma } from "../../core/database";
 
 const SESSION_DURATION_MS = 9 * 60 * 60 * 1000;
+const REMEMBERED_SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
 
 export class SessionService {
   constructor(private readonly tokenService = new TokenService()) {}
 
-  async createSession(userId: string) {
+  async createSession(userId: string, rememberMe = false) {
     const token = this.tokenService.generate();
 
     const tokenHash = this.tokenService.hash(token);
 
-    const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
+    const expiresAt = new Date(
+      Date.now() +
+        (rememberMe
+          ? REMEMBERED_SESSION_DURATION_MS
+          : SESSION_DURATION_MS),
+    );
 
     await prisma.session.create({
       data: {

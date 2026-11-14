@@ -10,6 +10,7 @@ export function createLoginHandler(
     const body = await readBody<{
       username?: string;
       password?: string;
+      rememberMe?: boolean;
     }>(event);
 
     const username = body.username?.trim();
@@ -32,7 +33,8 @@ export function createLoginHandler(
       });
     }
 
-    const session = await sessionService.createSession(user.id);
+    const rememberMe = body.rememberMe === true;
+    const session = await sessionService.createSession(user.id, rememberMe);
 
     const authUser = user as any;
 
@@ -57,7 +59,7 @@ export function createLoginHandler(
       secure: process.env["NODE_ENV"] === "production",
       sameSite: "lax",
       path: "/",
-      expires: session.expiresAt,
+      ...(rememberMe ? { expires: session.expiresAt } : {}),
     });
 
     return {

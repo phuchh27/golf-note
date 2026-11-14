@@ -10,6 +10,10 @@ Run `npm install` to install the application dependencies.
 
 Run `npm start` for a dev server. Navigate to `http://localhost:5173/`. The application automatically reloads if you change any of the source files.
 
+## VS Code and Codespaces
+
+This workspace recommends the Angular Language Service, Prisma, and Tailwind CSS IntelliSense extensions. In VS Code or Codespaces, open the Extensions view and choose **Install Workspace Recommended Extensions**.
+
 ## Build
 
 Run `npm run build` to build the client/server project. The client build artifacts are located in the `dist/analog/public` directory. The server for the API build artifacts are located in the `dist/analog/server` directory.

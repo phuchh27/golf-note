@@ -138,7 +138,7 @@ describe("Login API", () => {
 
     expect(identityService.authenticate).toHaveBeenCalledWith("admin", "admin");
 
-    expect(sessionService.createSession).toHaveBeenCalledWith("user-1");
+    expect(sessionService.createSession).toHaveBeenCalledWith("user-1", false);
 
     const cookiesRaw = response.headers["set-cookie"];
 
@@ -155,5 +155,47 @@ describe("Login API", () => {
     expect(cookies.some((cookie: string) => cookie.includes("HttpOnly"))).toBe(
       true,
     );
+    expect(cookies.some((cookie: string) => cookie.includes("Expires="))).toBe(
+      false,
+    );
+  });
+
+  it("creates a persistent cookie when rememberMe is enabled", async () => {
+    const identityService = {
+      authenticate: vi.fn().mockResolvedValue({
+        id: "user-1",
+        username: "admin",
+        fullName: "System Administrator",
+        roles: ["SUPER_ADMIN"],
+        permissions: ["manage:all"],
+      }),
+    };
+
+    const sessionService = {
+      createSession: vi.fn().mockResolvedValue({
+        token: "test-session-token",
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      }),
+    };
+
+    const app = createTestApp(identityService, sessionService);
+
+    const response = await request(toNodeListener(app))
+      .post("/api/v1/auth/login")
+      .send({
+        username: "admin",
+        password: "admin",
+        rememberMe: true,
+      });
+
+    expect(response.status).toBe(200);
+    expect(sessionService.createSession).toHaveBeenCalledWith("user-1", true);
+
+    const cookiesRaw = response.headers["set-cookie"];
+    const cookies: string[] = Array.isArray(cookiesRaw)
+      ? cookiesRaw
+      : [cookiesRaw as string];
+
+    expect(cookies.some((cookie) => cookie.includes("Expires="))).toBe(true);
   });
 });

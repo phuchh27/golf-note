@@ -277,6 +277,7 @@ export class InventoryReportService {
     }
 
     const saleQuantityByItem = new Map<string, number>();
+    const saleQuantityByLot = new Map<string, number>();
     const saleRevenueByItem = new Map<string, number>();
     const saleCountByItem = new Map<string, number>();
     for (const sale of sales) {
@@ -285,6 +286,12 @@ export class InventoryReportService {
           line.itemId,
           (saleQuantityByItem.get(line.itemId) ?? 0) + Number(line.quantity),
         );
+        if (line.lotId) {
+          saleQuantityByLot.set(
+            line.lotId,
+            (saleQuantityByLot.get(line.lotId) ?? 0) + Number(line.quantity),
+          );
+        }
         saleRevenueByItem.set(
           line.itemId,
           (saleRevenueByItem.get(line.itemId) ?? 0) + Number(line.totalPrice),
@@ -306,7 +313,9 @@ export class InventoryReportService {
           0,
           Number(lot.quantity) - (lotPostMonthDelta.get(lot.id) ?? 0),
         ),
-      }));
+      })).filter(
+        (lot) => lot.quantity > 0 || (saleQuantityByLot.get(lot.id) ?? 0) > 0,
+      );
       return {
         id: item.id,
         sku: item.sku,
@@ -326,7 +335,7 @@ export class InventoryReportService {
         soldRevenue: saleRevenueByItem.get(item.id) ?? 0,
         saleLineCount: saleCountByItem.get(item.id) ?? 0,
       };
-    });
+    }).filter((item) => item.quantity > 0 || item.saleLineCount > 0);
 
     const categories = new Map<
       string,
