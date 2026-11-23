@@ -15,7 +15,7 @@
             "configFile": "vite.config.ts",
             "main": "src/main.ts",
             "outputPath": "dist/client",
-            "tsConfig": "tsconfig.app.json"
+            "tsConfig": "tsconfig.app.json"          
           },
           "defaultConfiguration": "production",
           "configurations": {
@@ -50,5 +50,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "43c8bbd5-5630-4370-83ae-00b5504d86b2"
   }
 }

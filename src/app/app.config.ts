@@ -1,7 +1,9 @@
 import { provideHttpClient, withInterceptors } from "@angular/common/http";
 import {
   ApplicationConfig,
+  isDevMode,
   provideBrowserGlobalErrorListeners,
+  provideZoneChangeDetection
 } from "@angular/core";
 import {
   provideClientHydration,
@@ -13,6 +15,7 @@ import { API_PREFIX } from "@analogjs/router/tokens";
 
 import { adminGuard, authGuard } from "./core/auth/auth.guard";
 import { authErrorInterceptor } from "./core/auth/auth.http-interceptor";
+
 
 export const appRoutes: Routes = [
   {
@@ -99,6 +102,7 @@ export const appRoutes: Routes = [
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    // provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(appRoutes),
     provideHttpClient(
       withInterceptors([requestContextInterceptor, authErrorInterceptor]),
